@@ -1,0 +1,58 @@
+-- Shared pgTAP helpers for DCU Active database tests. Included by every test file with \ir.
+-- Everything here lives inside the test transaction and is rolled back at the end of each file.
+
+create extension if not exists pgtap with schema extensions;
+create schema if not exists tests;
+
+-- Deterministic test clock (private.now() honours app.test_now only while app.allow_time_override = 'on').
+set local app.allow_time_override = 'on';
+
+create or replace function tests.set_now(p_ts text) returns void language sql as $$
+  select set_config('app.test_now', p_ts, true)
+$$;
+
+-- Creates an auth user; the on_auth_user_created trigger creates the matching app.profiles row.
+create or replace function tests.create_user(p_id uuid, p_email text, p_verified boolean default true,
+                                             p_name text default 'Test User')
+returns uuid language sql as $$
+  insert into auth.users (instance_id, id, aud, role, email, email_confirmed_at,
+                          raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+  values ('00000000-0000-0000-0000-000000000000', p_id, 'authenticated', 'authenticated', p_email,
+          case when p_verified then now() end,
+          '{"provider":"email","providers":["email"]}', jsonb_build_object('full_name', p_name), now(), now())
+  returning id
+$$;
+
+create or replace function tests.make_admin(p_id uuid) returns void language sql as $$
+  update app.profiles set role = 'ADMIN' where id = p_id
+$$;
+
+-- Runs p_sql as the API would: role "authenticated" with the given user's JWT claims (null = no session/anon-like).
+create or replace function tests.call(p_uid uuid, p_sql text) returns jsonb language plpgsql as $$
+declare v_result jsonb;
+begin
+  perform set_config('request.jwt.claims',
+    case when p_uid is null then '' else json_build_object('sub', p_uid, 'role', 'authenticated')::text end, true);
+  execute 'set local role authenticated';
+  execute p_sql into v_result;
+  execute 'reset role';
+  return v_result;
+end $$;
+
+-- Same, as role "anon" (no session).
+create or replace function tests.call_anon(p_sql text) returns jsonb language plpgsql as $$
+declare v_result jsonb;
+begin
+  perform set_config('request.jwt.claims', json_build_object('role', 'anon')::text, true);
+  execute 'set local role anon';
+  execute p_sql into v_result;
+  execute 'reset role';
+  return v_result;
+end $$;
+
+create or replace function tests.book(p_uid uuid, p_facility text, p_activity text, p_date text, p_time text,
+                                      p_duration integer, p_key uuid default gen_random_uuid())
+returns jsonb language sql as $$
+  select tests.call(p_uid, format('select api.create_booking(%L, %L, %L::date, %L, %s, %L::uuid)',
+                                  p_facility, p_activity, p_date, p_time, p_duration, p_key))
+$$;

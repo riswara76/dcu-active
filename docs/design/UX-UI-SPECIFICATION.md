@@ -54,8 +54,10 @@ Contrast ratios were computed with the WCAG 2.x formula on 2026-10-14.
 
 | Token | Hex | Use | Contrast |
 |---|---|---|---|
-| `--color-primary` | `#0B5CAD` | Primary buttons, links, selected date/slot | 6.67:1 on white (white text on it: 6.67:1) |
-| `--color-primary-soft` | `#E8F1FB` | Selected backgrounds | primary text on it 5.85:1 |
+| `--color-primary` | `#C8102E` (DCU red) | Primary buttons, links, selected date/slot | 5.88:1 on white (white text on it: 5.88:1); 5.35:1 on `#F3F4F6` |
+| `--color-primary-hover` | `#991B1B` | Hover/pressed | 8.31:1 on white |
+| `--color-primary-soft` | `#FEF2F2` | Selected backgrounds | `#B91C1C` text on it 5.91:1 |
+| `--color-header` | `#1F2937` (dark grey) | App header, admin sidebar | white text 14.68:1; `#E5E7EB` text 11.86:1 |
 | `--color-text` | `#111827` | Body text | 17.74:1 on white |
 | `--color-text-muted` | `#4B5563` | Secondary text | 7.56:1 |
 | `--color-text-subtle` | `#6B7280` | Captions, placeholders | 4.83:1 |
@@ -66,9 +68,17 @@ Contrast ratios were computed with the WCAG 2.x formula on 2026-10-14.
 | `--color-booked` / `-bg` | `#374151` / `#E5E7EB` | "Booked" slot | 8.33:1 |
 | `--color-success` | `#15803D` | Success icon/button | 5.02:1 |
 | `--color-warning` / `-bg` | `#92400E` / `#FEF3C7` | Check-in banner, warnings | 6.37:1 |
-| `--color-danger` / `-bg` | `#991B1B` / `#FEE2E2` | Errors, destructive actions | 6.80:1 (`#B91C1C` on white 6.47:1) |
+| `--color-danger` / `-bg` | `#7F1D1D` / `#FEE2E2` | Errors, destructive actions | 8.20:1 |
 
-Light theme only in V1. All colours are CSS variables, so DCU brand colours can replace them later. Any replacement must be re-checked for contrast.
+**Brand direction (PO decision 2026-10-14): dominant red, grey, and white.**
+
+- Red is the primary/action colour.
+- Dark grey is used for the header and admin sidebar.
+- White is the main background, with light grey surfaces.
+- Because the primary colour is red, **errors and destructive actions are never signalled by colour alone**. They always carry an icon (alert/trash), explicit wording ("Cancel booking", "Error:"), and for destructive buttons an outlined style, so they cannot be confused with normal primary buttons.
+- Green is kept only for the small "Available" slot state, because it is a universally understood semantic colour.
+
+Light theme only in V1. All colours are CSS variables. Any future change must be re-checked for contrast.
 
 ### 3.2 Typography (system font stack, ADR-009)
 
@@ -493,6 +503,6 @@ Counted after selecting the facility.
 
 ## 13. Items for PO review
 
-1. The palette is a neutral, accessible default. Provide DCU brand colours or a logo if available (they will be contrast-checked).
+1. Brand palette decided: red, grey, white (§3.1, contrast-checked). A DCU logo file can still be provided; otherwise a text wordmark "DCU Active" is used.
 2. Support contact text for the Account disabled screen and help page (OD-10).
 3. Privacy notice wording (OD-17, Legal).

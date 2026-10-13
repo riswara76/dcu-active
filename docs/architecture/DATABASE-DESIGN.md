@@ -10,6 +10,14 @@
 
 > The SQL in this document is **design-level DDL** for review. It becomes versioned migrations in Phase 2, where exact syntax is validated by `supabase db reset` and pgTAP. Nothing here has been executed.
 
+> **Phase 2 implementation notes (2026-10-14):**
+> - The implemented schema is in `supabase/migrations/` and is the source of truth.
+> - Differences from this design are listed in `docs/PHASE-2-REPORT.md` §D:
+>   - emails and domains are stored as lower-case `text` instead of `citext`;
+>   - `rate_limit_counters` is not implemented (DV-01);
+>   - `audit_logs.request_id` is omitted;
+>   - the test clock requires a session-level `app.allow_time_override`.
+
 ---
 
 ## 1. Conventions

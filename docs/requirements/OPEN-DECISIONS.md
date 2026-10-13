@@ -46,6 +46,12 @@ The decisions still open (Part 2) are needed only before Phase 2, production, or
 | OD-03 (partly) | Email sender address | Authentication emails are sent **from `DCU@danamon.co.id`**. | The sending method still has to be agreed with Danamon IT: either Danamon's own mail relay, or a transactional provider authorised for `danamon.co.id` through SPF/DKIM records. See `docs/architecture/SOLUTION-ARCHITECTURE.md` §11. |
 | OD-04 (partly) | Initial administrators | Administrators use **`@danamon.co.id`** email addresses. | Names/addresses of the first 2 admins are needed before the Phase 2 staging seed. |
 | OD-22 | Data region | Storing data on servers **outside Indonesia is allowed**. Supabase region: **Southeast Asia (Singapore)**. | — |
+| OD-29b | GitHub remote | `https://github.com/riswara76/dcu-active.git` (provided 2026-10-14). | First push needs the owner's GitHub sign-in on this PC. |
+| OD-33 | Supabase account owner | The PO (Ronny Iswara) owns the Supabase organisation and billing for staging and production. | PO creates the projects when Phase 2 reaches staging. |
+| OD-04b | First administrator | `ronny.iswara@danamon.co.id`. | A second admin is recommended to avoid lock-out (BR ROLE-03). |
+| OD-03b | Email sending method | The PO will arrange it with Danamon IT. | Needed for real-email staging tests. |
+| OD-34 | Brand colours | Dominant **red, grey, and white**. | UX spec §3.1 updated with contrast-checked tokens. |
+| OD-35 | Setting ranges | Approved as designed (FR-ADM-13). | — |
 | OD-29 | Source control | **Git + GitHub approved.** A local Git repository was initialised on 2026-10-14 (branch `main`). | The GitHub CLI is not installed on this machine, so the GitHub remote still has to be created (see the Phase 1 review package). |
 
 **Ranges for editable settings (PROPOSED, part of FR-ADM-13; confirm or adjust in Phase 1):**

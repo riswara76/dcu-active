@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  database:
+    name: Database, security and concurrency tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Start local Supabase (migrations + seed)
+        run: npx supabase start
+
+      - name: Database lint
+        run: npx supabase db lint --level warning --fail-on error
+
+      - name: pgTAP tests
+        run: npx supabase test db
+
+      - name: Integration and concurrency tests
+        run: npm run test:integration
+
+      - name: Stop Supabase
+        if: always()
+        run: npx supabase stop --no-backup
