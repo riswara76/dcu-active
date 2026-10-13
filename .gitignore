@@ -1,0 +1,25 @@
+# Dependencies & build output
+node_modules/
+dist/
+dev-dist/
+coverage/
+playwright-report/
+test-results/
+
+# Environment & secrets (never commit)
+.env
+.env.*
+!.env.example
+*-firebase-adminsdk-*.json
+supabase/.temp/
+supabase/.branches/
+
+# Local agent / editor files (not part of the project)
+.claude/
+SKILL.md
+.vscode/
+.idea/
+*.log
+.DS_Store
+Thumbs.db
+~$*.docx
