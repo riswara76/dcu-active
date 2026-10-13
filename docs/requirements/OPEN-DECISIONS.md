@@ -3,8 +3,8 @@
 | Item | Value |
 |---|---|
 | Phase | Phase 0 |
-| Version | 0.2 (PO decisions recorded) |
-| Date | 2026-10-13 |
+| Version | 0.3 (decisions of 2026-10-14 recorded) |
+| Date | 2026-10-14 |
 
 On 2026-10-13 the Product Owner resolved **every decision needed before Phase 1**. They are recorded in the Decision Log (Part 1).
 
@@ -39,6 +39,15 @@ The decisions still open (Part 2) are needed only before Phase 2, production, or
 | OD-31 | Admin accounts and domains | Admins **must** have an email on an allowed domain | New rule | BRD ROLE-06; TRD TR-AUTH-10/12 |
 | OD-32 | Subdomains | **Not allowed.** Only exact domain matches (e.g. `x@branch.danamon.co.id` is rejected). | New rule | BRD FR-AUTH-12; TRD 6.2 |
 
+### Decisions recorded 2026-10-14
+
+| ID | Decision | Outcome | Follow-up |
+|---|---|---|---|
+| OD-03 (partly) | Email sender address | Authentication emails are sent **from `DCU@danamon.co.id`**. | The sending method still has to be agreed with Danamon IT: either Danamon's own mail relay, or a transactional provider authorised for `danamon.co.id` through SPF/DKIM records. See `docs/architecture/SOLUTION-ARCHITECTURE.md` §11. |
+| OD-04 (partly) | Initial administrators | Administrators use **`@danamon.co.id`** email addresses. | Names/addresses of the first 2 admins are needed before the Phase 2 staging seed. |
+| OD-22 | Data region | Storing data on servers **outside Indonesia is allowed**. Supabase region: **Southeast Asia (Singapore)**. | — |
+| OD-29 | Source control | **Git + GitHub approved.** A local Git repository was initialised on 2026-10-14 (branch `main`). | The GitHub CLI is not installed on this machine, so the GitHub remote still has to be created (see the Phase 1 review package). |
+
 **Ranges for editable settings (PROPOSED, part of FR-ADM-13; confirm or adjust in Phase 1):**
 
 | Setting | Range |
@@ -56,12 +65,10 @@ The decisions still open (Part 2) are needed only before Phase 2, production, or
 
 | ID | Decision | Proposed default | Needed before | Owner |
 |---|---|---|---|---|
-| OD-03 | Email delivery provider | Transactional SMTP provider (e.g. Resend, Postmark, Amazon SES, Brevo) on a DCU sender domain. **New in v0.2:** ask the IT teams of Danamon, Adira, and Home Credit to allow-list the sender so verification emails are not quarantined. | Phase 2 (realistic auth testing); mandatory for production | PO + IT |
-| OD-04 | Initial administrator provisioning | Name 2+ initial admins **with emails on the allowed domains**. They register normally, then the operator promotes them via an audited script. | Phase 2 | PO |
+| OD-03 | Email delivery **method** for `DCU@danamon.co.id` | Sender decided (2026-10-14). Remaining: Danamon IT chooses between (A) Danamon's mail relay with SMTP credentials for the app, or (B) a transactional provider authorised via SPF/DKIM on `danamon.co.id` (recommended). Also ask Adira and Home Credit IT to allow-list the sender. | Phase 2 (realistic auth testing); mandatory for production | PO + Danamon IT |
+| OD-04 | Initial administrator names | Admins use `@danamon.co.id` addresses (decided). Remaining: names of the first 2 admins. | Phase 2 staging seed | PO |
 | OD-05 | Check-in configuration | 15 min before / 15 min after (inclusive), now editable on the settings screen | Phase 2 (initial value) | PO |
 | OD-06 | No-show processing mechanism | `pg_cron` every minute + lazy sweep in booking RPCs + effective status on read | Phase 2 | Tech lead |
-| OD-22 | Supabase region / data residency | Southeast Asia (Singapore). Confirm that the partner companies have no requirement to keep employee data inside Indonesia. | Phase 2 | PO + IT/Legal |
-| OD-29 | Source control and CI | Git repository on GitHub with GitHub Actions (the workspace is not a Git repository yet) | Start of Phase 1 implementation artefacts / Phase 2 | PO + IT |
 | OD-01 | Production hosting provider | Cloudflare Pages (alternatives: Vercel, Netlify) | Production | PO + IT |
 | OD-02 | Domain name | Subdomain of a DCU domain, e.g. `active.<dcu-domain>` | Production (staging URL earlier) | PO + IT |
 | OD-08 | Operational monitoring | Frontend error tracking + uptime monitor + job-health alert + daily integrity check | Production | PO + Ops |
