@@ -182,7 +182,7 @@ bullets(s, Inches(0.6), Inches(1.8), Inches(7.2), Inches(5), [
 rect(s, Inches(8.2), Inches(1.8), Inches(4.5), Inches(4.9), GREY_LIGHT, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
 text(s, Inches(8.45), Inches(1.95), Inches(4), Inches(0.4), '6 fasilitas · 8 unit', 15, RED, True)
 facilities = [('Tennis Court', '30 · 60 · 90 min'), ('Basketball / Futsal Court', '30 · 60 · 90 min'),
-              ('Football Field', '30 · 60 · 90 min'), ('Table Tennis (2 meja)', '30 min'),
+              ('Football Field', '30 · 60 · 90 min'), ('Table Tennis', '30 min'),
               ('Air Hockey (2 unit)', '30 min'), ('Foosball (2 unit)', '30 min')]
 for i, (n, d) in enumerate(facilities):
     y = Inches(2.5 + i * 0.68)

@@ -4,11 +4,11 @@
 |---|---|
 | Document | Business Requirement Document |
 | Product | DCU Active — Sports & Recreational Facility Booking |
-| Phase | Phase 0 — Business and Technical Requirements |
-| Version | 0.2 (Product Owner decisions incorporated) |
-| Date | 2026-10-13 |
-| Status | AWAITING FINAL PHASE 0 APPROVAL |
-| Companion documents | `TRD.md`, `REQUIREMENTS-TRACEABILITY-MATRIX.md`, `OPEN-DECISIONS.md`, `PHASE-0-REVIEW-PACKAGE.md` |
+| Phase | Phase 4 — Integration, testing and hardening (as-built baseline) |
+| Version | 1.0 (as built; staging release of 2026-10-14) |
+| Date | 2026-10-14 |
+| Status | BASELINE. Describes the application as built and deployed to staging. Remaining decisions are listed in Section 0.4. |
+| Companion documents | `TRD.md`, `REQUIREMENTS-TRACEABILITY-MATRIX.md`, `OPEN-DECISIONS.md`, `../user-manual/USER-MANUAL.md`, `../testing/TEST-RESULTS.md` |
 
 ## Change log
 
@@ -16,6 +16,7 @@
 |---|---|---|
 | 0.1 | 2026-10-13 | First draft. |
 | 0.2 | 2026-10-13 | The Product Owner resolved all decisions needed before Phase 1 (see `OPEN-DECISIONS.md`, Decision Log). Three of them **change the original baseline**: (1) users may cancel only up to **30 minutes before** the start (BR-26); (2) the **Football Field** allows **30/60/90 minutes** (was 30); (3) registration is **restricted to approved company email domains** — `danamon.co.id`, `adira.co.id`, `homecredit.co.id` — which administrators can manage (FR-AUTH-12, FR-ADM-12); the baseline allowed any domain. In addition, an **admin settings screen is in V1 scope** (FR-ADM-13); the baseline deferred it. All other proposed defaults were accepted and are now APPROVED. |
+| 1.0 | 2026-10-14 | **As-built baseline** after Phases 1–4. Adds Section 0 (delivery status, differences from v0.2, remaining decisions, and change requests under discussion). Updates FR-AVL-02 (pooled slot wording) and FR-BKG-01 (the duration choice stays on screen, UAT-01). Adds FR-AVL-06 (the grid highlights the whole selected block, UAT-02), FE-14 and FE-15. All PROPOSED items were accepted at the Phase 0 approval and implemented unless Section 0.3 says otherwise. |
 
 ## Requirement status labels
 
@@ -27,7 +28,73 @@ Every requirement in this document carries one of the following labels:
 | **PROPOSED** | Introduced by the project team to make a baseline requirement complete or testable. Requires Product Owner confirmation, but will be used as the default if not rejected. |
 | **OPEN DECISION** | A choice that cannot be defaulted safely. Tracked in `OPEN-DECISIONS.md` as `OD-xx`. |
 
+> **v1.0:** all PROPOSED items were accepted at the Phase 0 approval (2026-10-13) and implemented as written, unless Section 0.3 lists a difference. The labels are kept for traceability.
+
 Priority uses MoSCoW: **MUST HAVE**, **SHOULD HAVE**, **COULD HAVE**, **OUT OF SCOPE**.
+
+---
+
+## 0. Version 1.0 — As-Built Summary
+
+This section summarises the application **as built** on 2026-10-14. The rest of the document keeps the requirement text and IDs from v0.2, so that traceability to tests (`REQUIREMENTS-TRACEABILITY-MATRIX.md`) is preserved. Where Section 0 and a later section differ, Section 0 describes the delivered behaviour.
+
+### 0.1 Delivery status
+
+| Phase | Status (2026-10-14) | Evidence |
+|---|---|---|
+| 0 Requirements | Approved by the Product Owner | `OPEN-DECISIONS.md` (Decision Log) |
+| 1 Architecture & UX | Approved | `docs/architecture/`, `docs/design/` |
+| 2 Backend & database | Built and tested | `docs/PHASE-2-REPORT.md` |
+| 3 Frontend web app / PWA | Built and tested | `docs/PHASE-3-REPORT.md` |
+| 4 Integration, testing & hardening | Local testing complete. **Staging is live**, and user acceptance testing (UAT) by the Product Owner has started. | `docs/testing/TEST-RESULTS.md`, `docs/operations/STAGING-SETUP.md` |
+| 5 Production deployment | Not started. Depends on the decisions in 0.4. | — |
+| 6 Handover | Not started. The User Manual is available (`docs/user-manual/`). | — |
+
+### 0.2 What users get in Version 1.0
+
+- **Web app / PWA** in a phone or desktop browser, which can be installed to the home screen. The interface is in English (Bahasa Indonesia is FE-12).
+- **Registration and sign-in** with a company email (`@danamon.co.id`, `@adira.co.id`, `@homecredit.co.id`), password policy, email verification (code or link), and password reset.
+- **Booking** of 6 facilities (8 bookable units). The booking is confirmed immediately. Times are in WIB, from 06:00 to 21:00, in 30-minute slots, up to 7 days ahead. Durations are 30/60/90 minutes for Tennis, the Court and Football, and 30 minutes for Table Tennis, Air Hockey and Foosball.
+- **Fair-use rules enforced by the server:** at most 2 upcoming bookings, 1 booking per facility per day, cancellation up to 30 minutes before the start, check-in from 15 minutes before to 15 minutes after the start, and automatic no-show release.
+- **Live availability** that refreshes automatically, with no booker identity shown. Double booking is impossible.
+- **My bookings, booking details, notifications and profile.**
+- **Administration:** dashboard with utilisation, booking search and cancellation with a reason, facility blocks with impact preview, user management (activate, deactivate, grant or revoke admin), booking settings, email-domain management, and an immutable audit log.
+- **Staging environment:** https://dcu-active-staging.dcu-active.workers.dev. The first administrator, `ronny.iswara@danamon.co.id`, was provisioned on 2026-10-14 (audited).
+
+### 0.3 Differences from v0.2 and decisions taken during the build
+
+| Ref | Topic | v0.2 text | As built | Business impact |
+|---|---|---|---|---|
+| UAT-01 | Duration choice on phones | FR-BKG-01: durations that fit are selectable | Once a time is chosen, the 30/60/90 choice is shown in the bottom action bar, next to **Review booking**, so it is always on screen. | Found by the PO during UAT. Before the fix, Football looked bookable for 30 minutes only. |
+| UAT-02 | Selected block in the grid | — (new) | After choosing a start time and duration, every covered slot is highlighted: the start slot reads "Selected" and later slots read "Included" (new FR-AVL-06). | The user sees exactly which slots the booking occupies. |
+| FR-AVL-02 | Pooled facility wording | "2 tables available" / "1 table available" / "Fully booked" | "2 left" / "1 left" / "Full" | Shorter labels that fit a phone grid. Same meaning. |
+| DV-01 | Booking request rate limit | Application-level `RATE_LIMITED` on booking | Not implemented in the database. The fair-use limits and Supabase platform limits apply, and sign-in/sign-up are rate-limited by Supabase Auth. | Low. To be revisited if abuse is observed (network-level limit). |
+| DV-05 | Audit granularity | One audit row per admin action | One audit row **per affected record**. For example, a block that cancels 2 bookings writes 3 rows. | Each booking's history shows why it was cancelled. |
+| DV-08 | Session revocation on deactivation | Optional immediate sign-out | A deactivated user is blocked on their next action. Sessions are not force-ended. | No access to data or actions after deactivation. |
+| DV-12 | Table choice in block form | — | Air Hockey and Foosball tables 1–2 are fixed choices. Adding tables requires a database change (assumption A-03). | None while the inventory is unchanged. |
+| DV-13 | Support contact | OD-10 | `DCU@danamon.co.id` is shown as a configurable placeholder. | Change by configuration once OD-10 is decided. |
+| DV-14 | Privacy notice | Approved by Legal (OD-17) | Draft text, clearly marked "Draft". | Legal approval needed before go-live. |
+| Staging email | Custom email templates | Branded templates from `DCU@danamon.co.id` | Staging uses Supabase's default templates and built-in sender, which only delivers to project members. Staging test accounts are therefore created by an administrator. | Self-registration with real email depends on OD-03 (SMTP). |
+
+### 0.4 Decisions still required before go-live
+
+| ID | Decision | Owner |
+|---|---|---|
+| OD-03 | Email sending method for `DCU@danamon.co.id` (Danamon relay or an authorised provider, with SPF/DKIM/DMARC) | Danamon IT + PO |
+| OD-01 / OD-02 | Production hosting confirmation (Cloudflare is used for staging) and the production domain name | PO + IT |
+| OD-09 | Paid Supabase plan with daily backups (RPO ≤ 24 h, RTO ≤ 4 h) | PO + Ops |
+| OD-08 | Operational monitoring and alerting | PO + Ops |
+| OD-10 | Support contact and onboarding material (QR posters, help text) | PO |
+| OD-17 | Data retention, privacy notice text, and a data-sharing arrangement with the partner companies | Legal / DPO |
+| OD-04 | A second administrator (recommended, to avoid lock-out) | PO |
+| FR-AUTH-11 | Self-service account deletion (COULD) | PO + Legal |
+
+### 0.5 Change requests under discussion (not in Version 1.0 scope)
+
+| ID | Request (PO, 2026-10-14) | Assessment | Status |
+|---|---|---|---|
+| CR-01 | Register with a **mobile phone number** (OTP) instead of a company email | A phone number does not prove employment, which the email-domain rule currently guarantees (FR-AUTH-12). It also needs an SMS/WhatsApp provider (cost per OTP) and a UU PDP review. Recommended: keep company-email registration and optionally add the phone number to the profile for OTP login or notifications later (FE-14). | Awaiting PO decision |
+| CR-02 | Allow booking **only when the user is at the DCU location** (geo-tag) | Device location can be spoofed, is inaccurate indoors and on laptops, and would remove advance booking (BR-07). Recommended alternative: keep booking from anywhere and require **location- or QR-verified check-in** at the facility (FE-01, FE-15). | Awaiting PO decision |
 
 ---
 
@@ -235,16 +302,17 @@ Each requirement lists: ID, description, rationale, priority, acceptance criteri
 | FR-FAC-01 | Facility listing showing all active facilities with name, allowed durations, and a short availability hint for today. | Entry point to booking. | MUST | All 6 facilities are listed. Inactive facilities are hidden from users. | USER | — | APPROVED (hint PROPOSED) |
 | FR-FAC-02 | Facility details with activity selection when there is more than one activity (Basketball/Futsal). | Activity must be recorded. | MUST | F2 requires choosing an activity before booking. Other facilities skip this step automatically. | USER | FR-FAC-01 | APPROVED |
 | FR-AVL-01 | Date selection limited to today through today + 7 (8 dates, WIB). | Booking horizon (BR-07). | MUST | Exactly 8 selectable dates are shown, based on server WIB date. | USER | — | APPROVED |
-| FR-AVL-02 | Slot availability grid in 30-minute steps from 06:00 to 20:30 start times. Each slot shows Available, Booked, Unavailable (blocked/closed/past), or remaining capacity for pooled facilities. | Real-time availability (BO-05). | MUST | 1. States match the database. 2. Air Hockey/Foosball show "2 tables available", "1 table available", or "Fully booked". 3. Slots that have already started are not selectable. | USER | — | APPROVED |
+| FR-AVL-02 | Slot availability grid in 30-minute steps from 06:00 to 20:30 start times. Each slot shows Available, Booked, Unavailable (blocked/closed/past), or remaining capacity for pooled facilities. | Real-time availability (BO-05). | MUST | 1. States match the database. 2. Air Hockey/Foosball show "2 left", "1 left", or "Full" (v1.0 wording). 3. Slots that have already started are not selectable. | USER | — | APPROVED |
 | FR-AVL-03 | Availability never reveals another booker's name, email, user ID, or personal details. | Privacy (SEC-05). | MUST | Availability responses contain no owner fields. Verified by an API inspection test. | USER | — | APPROVED |
 | FR-AVL-04 | The user's **own** bookings are highlighted in the grid ("Your booking"). | Helps users avoid self-conflict. | SHOULD | Own bookings are marked. Others' bookings are just "Booked". | USER | — | PROPOSED |
+| FR-AVL-06 | **v1.0 (UAT-02):** after a start time and duration are chosen, every slot covered by the booking is highlighted as one block ("Selected" for the start slot, "Included" for the following slots). The highlight follows changes of duration. | The user sees exactly what will be booked. | MUST | Choosing 13:30 + 90 min highlights 13:30, 14:00 and 14:30. Changing to 60 min highlights only 13:30 and 14:00. | USER | FR-BKG-01 | APPROVED (PO, 2026-10-14) |
 | FR-AVL-05 | Availability refreshes automatically when bookings, cancellations, blocks, block removals, or no-show releases occur, with a periodic fallback. | BO-05. | MUST | A change made in one browser appears in another open availability view within the target time (TRD TR-RT-04). | USER | — | APPROVED |
 
 ### 8.3 Booking (BKG)
 
 | ID | Requirement | Rationale | Priority | Acceptance criteria | Role | Depends on | Status |
 |---|---|---|---|---|---|---|---|
-| FR-BKG-01 | Duration selection limited to the facility's allowed durations. Only durations that fit (free, within hours) are selectable for the chosen start time. | BR-02. | MUST | Tennis, the Basketball/Futsal court, and the Football Field offer 30/60/90. Table Tennis, Air Hockey, and Foosball offer 30 only. Durations that do not fit are disabled. | USER | — | APPROVED |
+| FR-BKG-01 | Duration selection limited to the facility's allowed durations. Only durations that fit (free, within hours) are selectable for the chosen start time. | BR-02. | MUST | Tennis, the Basketball/Futsal court, and the Football Field offer 30/60/90. Table Tennis, Air Hockey, and Foosball offer 30 only. Durations that do not fit are disabled. **v1.0 (UAT-01):** once a time is chosen, the duration choice is shown in the bottom action bar, so it is always visible without scrolling. | USER | — | APPROVED |
 | FR-BKG-02 | Booking review summary showing facility, activity, date, start time, end time, and duration (WIB). | Prevent mistakes. | MUST | All 6 items are shown before confirmation. | USER | — | APPROVED |
 | FR-BKG-03 | Confirmation creates an immediately **CONFIRMED** booking after backend validation. No admin approval. | BR-10. | MUST | A valid request returns a confirmation with a booking reference. The booking appears in My Bookings. | USER | — | APPROVED |
 | FR-BKG-04 | If the slot became unavailable before confirmation, the booking is rejected with a clear message, and the user returns to slot selection with refreshed availability. | Step 14 of the journey. | MUST | A conflicting request yields `SLOT_UNAVAILABLE`, and the UI refreshes the grid. | USER | — | APPROVED |
@@ -581,3 +649,5 @@ Payment · GPS validation · QR check-in · Chat · Social networking · Tournam
 | FE-11 | Utilization analytics export (CSV) and trends | Management reporting |
 | FE-12 | Bahasa Indonesia UI | Accessibility for local users |
 | FE-13 | Admin booking on behalf of users | Front-desk use |
+| FE-14 | Mobile number on the profile, with OTP login or WhatsApp notifications (see CR-01) | Convenience. Requires an SMS/WhatsApp provider and a UU PDP review. |
+| FE-15 | Location- or QR-verified check-in at the facility (see CR-02) | Confirms presence without blocking advance booking |

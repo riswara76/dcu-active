@@ -4,10 +4,10 @@
 |---|---|
 | Document | Technical Requirement Document |
 | Product | DCU Active |
-| Phase | Phase 0 — Business and Technical Requirements |
-| Version | 0.2 (Product Owner decisions incorporated) |
-| Date | 2026-10-13 |
-| Status | AWAITING FINAL PHASE 0 APPROVAL |
+| Phase | Phase 4 — Integration, testing and hardening (as-built baseline) |
+| Version | 1.0 (as built; staging release of 2026-10-14) |
+| Date | 2026-10-14 |
+| Status | BASELINE. Describes the system as built and deployed to staging. Open technical items are listed in Section 0.7. |
 
 **Change log**
 
@@ -15,6 +15,7 @@
 |---|---|---|
 | 0.1 | 2026-10-13 | First draft. |
 | 0.2 | 2026-10-13 | PO decisions applied. (1) Email domain allow-list: new table `allowed_email_domains`, Auth hook, TR-AUTH-11/12, admin RPCs. (2) Admin settings screen in V1: `/admin/settings`, `admin_update_setting` with UI, new setting `user_cancel_cutoff_minutes`. (3) User cancellation cutoff 30 min before start. (4) Football Field 30/60/90 min (reference data). (5) Daily-limit backstop changed from a partial unique index to a transactional check, because the limit is now configurable. (6) TEST-36…54 mandatory. |
+| 1.0 | 2026-10-14 | **As-built baseline** after Phases 1–4. Adds Section 0: pinned stack, environments and hosting as deployed, database objects, deviations DV-01…14 and UAT fixes, test status, and open technical items. TR-DEP-05 updated: staging is hosted on Cloudflare static assets. All PROPOSED items were accepted at the Phase 0 approval and implemented unless Section 0.5 says otherwise. |
 | Related | `BRD.md` (business requirement IDs: BO-, FR-, BR-, NFR-), `REQUIREMENTS-TRACEABILITY-MATRIX.md`, `OPEN-DECISIONS.md` |
 
 **Status labels:** APPROVED (from the baseline instruction), PROPOSED (team recommendation, default unless rejected), OPEN DECISION (`OD-xx`).
@@ -22,6 +23,107 @@
 **Format of technical requirements:** each `TR-` item gives a description, the related business requirement, the proposed implementation approach, and the verification method (Test / DB test / Inspection / Analysis / Demo).
 
 This document specifies **what** must be built and **how it will be verified**. Detailed design artefacts (final ERD, full DDL, the complete OpenAPI/RPC contract, wireframes) are Phase 1 deliverables. The data model and RPC list here are the **proposed baseline** for that design.
+
+---
+
+## 0. Version 1.0 — As-Built Technical Summary
+
+This section describes the system **as built** on 2026-10-14. The requirement text and IDs in Sections 1–22 are kept from v0.2 for traceability. Where Section 0 and a later section differ, Section 0 describes the delivered system.
+
+### 0.1 Pinned technology stack (from `package.json`; exact versions, no ranges)
+
+| Layer | As built |
+|---|---|
+| Runtime / tooling | Node.js 24 LTS, npm 11, Docker Desktop (local Supabase), Git + GitHub (`riswara76/dcu-active`) |
+| UI | React 19.3.0, React Router 8.4.0 (data router, SPA), TanStack Query 5.104.2, Tailwind CSS 4.3.3, `radix-ui` 1.8.1, `lucide-react` 1.56.0 |
+| Language | TypeScript 6.0.3 (strict). TS 7 is not used, because `typescript-eslint` 8.71.2 supports TS below 6.1. |
+| Build / PWA | Vite 8.3.4, `@vitejs/plugin-react` 6.1.2, `vite-plugin-pwa` 2.0.0, Workbox 7.4.1 |
+| Backend client | `@supabase/supabase-js` 2.117.3; Supabase CLI 2.120.0 |
+| Testing | Vitest 5.0.4 + jsdom 30.1.2 + Testing Library; Playwright 1.64.0; `@axe-core/playwright` 4.13.0; pgTAP (Supabase CLI); `pg` 8.23.1 |
+| Lint | ESLint 9.39.5 (not 10, DV-10), `typescript-eslint` 8.71.2, `eslint-plugin-react`, `-react-hooks`, `-jsx-a11y` |
+| Hosting CLI | Wrangler 4.150.0 (pinned) |
+| Forms | Hand-written validation (not `react-hook-form`/`zod`, DV-09). The server remains the authority. |
+| Date/time | `Intl.DateTimeFormat` with `Asia/Jakarta`; all business time calculations happen in the database |
+
+### 0.2 Environments as deployed
+
+| Environment | Database / Auth | Frontend hosting | Notes |
+|---|---|---|---|
+| Local | Supabase CLI stack in Docker, seeded with local test accounts (`supabase/seed.sql`) | `npm run dev` (5173) / `npm run preview` (4173) with the same security headers | Mailpit catches emails locally |
+| CI | GitHub Actions `.github/workflows/ci.yml`: frontend job (lint, typecheck, unit, build, bundle secret scan) and database job (Supabase start, db lint, pgTAP, integration, E2E) | — | — |
+| Staging | Supabase project `fuklxwviqczplonpreuh`, region Southeast Asia (Singapore), Free plan. 13 migrations applied; Auth settings pushed from `config.toml` `[remotes.staging]`. No seed data. | **Cloudflare static assets (Workers)** at https://dcu-active-staging.dcu-active.workers.dev, deployed with `npm run deploy:staging` (`wrangler.jsonc`: assets only, SPA fallback through `not_found_handling`, `workers_dev` on, preview URLs off) | Built-in email only delivers to project members; custom templates need custom SMTP (OD-03) |
+| Production | Not yet created (paid plan, OD-09) | OD-01 / OD-02 | Phase 5 |
+
+The build writes `dist/_headers` with the CSP, HSTS, other security headers, and cache rules (`/assets/*` immutable; `/sw.js` no-cache). Wrangler 4.150 serves Pages-style static sites through Workers static assets; no server code is deployed.
+
+### 0.3 Database as built
+
+- **13 migrations** (`supabase/migrations/20261014000001…13`): extensions and schemas; reference tables; profiles; settings and domains; bookings and blocks; notifications, audit and operations; private helpers; RLS and grants; user API; admin API; Realtime; Auth hook; cron jobs.
+- **Schemas:** `api` (the only schema exposed through the Data API; functions only), `app` (tables, RLS on), `private` (helpers, hooks, jobs; not exposed).
+- **API surface:** 33 functions in `api`, of which 19 are admin functions. Read functions for own data and admin lists run as SECURITY INVOKER under RLS. Write functions run as SECURITY DEFINER with `search_path = ''`. Every migration ends with explicit `revoke execute … from public, anon`, checked by pgTAP.
+- **Integrity:** GiST exclusion constraint on `(resource_id, time_range)` for occupying statuses; lock order profile → resources → bookings; idempotency keys; transactional check for the configurable daily limit.
+- **Auth hook:** `private.hook_before_user_created` enforces the email-domain allow-list (exact match, no subdomains).
+- **Realtime:** private broadcast via `realtime.send`; the payload is only `{facility_code, date_wib}` (plus Realtime's own message id).
+- **Scheduled jobs (`pg_cron`):** `booking-status` every minute (no-show release and completion; an in-transaction sweep also runs in booking functions), `purge-notifications` daily at 03:00 WIB (90-day retention), `integrity-check` daily at 03:15 WIB.
+- **Test clock:** `private.now()` honours `app.test_now` only when the **session** sets `app.allow_time_override = on` (DV-03). API clients cannot do this.
+- **Errors:** business errors are raised as SQLSTATE `P0001` with the stable error code as the message (Section 11.4).
+- **First administrator:** promoted with `scripts/provision-admin.sql`, which writes an audit row (`ROLE_GRANT`, actor SYSTEM).
+
+### 0.4 Frontend as built
+
+- SPA with lazy-loaded admin routes. The PWA uses a prompt-to-update service worker that caches static assets only; API, Auth and Realtime traffic is never cached.
+- Offline banner. React Query uses `networkMode: 'online'`, so nothing is queued while offline.
+- Availability refresh: Realtime signal, with 30-second polling as fallback when Realtime is unavailable.
+- Booking screen (after UAT): the duration choice is in the sticky action bar (UAT-01), and the slot grid highlights every slot covered by the chosen duration (UAT-02, BRD FR-AVL-06).
+- Security: strict `script-src 'self'`; style `'unsafe-inline'` only (DV-11); `safeNext()` open-redirect guard; global handling of `ACCOUNT_DISABLED` / `NOT_AUTHENTICATED`; bundle secret scan in CI and before every staging deploy.
+
+### 0.5 Deviations from v0.2 (approved in the phase reports)
+
+| ID | v0.2 requirement | As built | Reason |
+|---|---|---|---|
+| DV-01 | `RATE_LIMITED` on `create_booking` (TR-SEC-13) | Not implemented in the database | A counter inside the booking transaction rolls back with failed requests. Effective limiting belongs before the database (gateway/network). Fair-use limits and Supabase platform limits apply. |
+| DV-02 | `citext` for emails/domains | `text`, stored lower-case, with CHECK constraints | Avoids extension operator lookup with an empty `search_path` |
+| DV-03 | Test clock enabled by a database setting | Enabled only per session | API clients cannot set it |
+| DV-04 | `ALTER DEFAULT PRIVILEGES` | Explicit `REVOKE` per migration, enforced by a test | PostgreSQL cannot remove the PUBLIC default per schema |
+| DV-05 | One audit row per admin action | One row per affected entity | Per-booking history |
+| DV-06 | `audit_logs.request_id` | Omitted | Can be added without breaking changes |
+| DV-07 | Realtime payload `{facility_code, date_wib}` | Same, plus Realtime's own message id | Added by Supabase |
+| DV-08 | Edge Function to revoke sessions on deactivation (SHOULD) | Deferred | The database blocks deactivated users on their next action (TEST-25) |
+| DV-09 | `react-hook-form` + `zod` | Hand-written validation | Smaller bundle (246 → 211 KB gzip) |
+| DV-10 | ESLint 10 | ESLint 9.39.5 | Plugin support |
+| DV-11 | `style-src 'self'` | `style-src 'self' 'unsafe-inline'` | Radix scroll lock injects a `<style>` element. Scripts remain strict. |
+| DV-12 | — | Block form table choices fixed (1–2) | Inventory changes by migration |
+| DV-13 | Support contact (OD-10) | `VITE_SUPPORT_CONTACT` placeholder | Pending OD-10 |
+| DV-14 | Approved privacy notice | Draft text | Pending OD-17 |
+| Hosting | TR-DEP-05: Cloudflare Pages, Vercel or Netlify | Staging on Cloudflare **Workers static assets** (the current Wrangler delivery path for Pages-style sites) | Equivalent capabilities: HTTPS, custom headers, SPA fallback |
+| Staging Auth emails | Custom templates (TR-DEP-04) | Default templates on staging | Not available on the Free plan with the built-in sender; requires custom SMTP (OD-03) |
+
+### 0.6 Test status (2026-10-14)
+
+| Suite | Result |
+|---|---|
+| pgTAP database tests | 197 / 197 |
+| API integration + concurrency | 17 / 17 (concurrency: 8 / 8 scenarios, 0 overlapping bookings) |
+| Unit / component (Vitest) | 39 / 39 |
+| End-to-end (Playwright: Android Chrome full; iPhone WebKit and desktop Chrome smoke), including axe accessibility checks | 41 / 41 |
+| OWASP ZAP baseline | 0 FAIL, 62 PASS, 5 low/informational |
+| `npm audit` | 0 vulnerabilities |
+| Lighthouse mobile (login page) | Performance 91, Accessibility 100, Best practices 100 |
+| Staging smoke tests | 9 / 9 (domain hook, weak password, tables not exposed, anon limits, health/cron) |
+| Supabase Advisor (staging) | 0 ERROR; 23 WARN for intended SECURITY DEFINER functions |
+| UAT findings | UAT-01 and UAT-02 fixed and deployed on 2026-10-14 |
+
+### 0.7 Open technical items
+
+| Item | Needed for |
+|---|---|
+| OD-03 custom SMTP for `DCU@danamon.co.id` (SPF/DKIM/DMARC), then push the branded templates | Real email delivery; self-registration on staging and production |
+| OD-09 paid Supabase plan, daily backups, restore drill | Production |
+| OD-01 / OD-02 production hosting and domain; update Auth Site URL and redirect URLs | Production |
+| OD-08 monitoring (frontend errors, uptime, job-health alert) | Production |
+| Real-device tests (TEST-28/29/31) and performance over a mobile network against staging | Phase 4 completion |
+| DV-01 network-level rate limiting; DV-08 session revocation | Revisit if abuse is observed |
+| Independent security review / penetration test | Go-live gate |
 
 ---
 
@@ -759,7 +861,7 @@ The mandatory scenarios TEST-01…TEST-35 and their mapping are in the traceabil
 | TR-DEP-02 | Configuration via environment variables per environment. Frontend: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_APP_ENV`, `VITE_SENTRY_DSN` (if chosen). Server-side secrets (SMTP, secret key) live only in Supabase/CI secret stores. | — |
 | TR-DEP-03 | CI pipeline: lint → typecheck → unit → `supabase db reset` + pgTAP → integration/concurrency → build → bundle secret scan → E2E (staging) → deploy. Migrations applied to staging automatically, production with manual approval. | Git hosting CI (e.g. GitHub Actions) — PROPOSED |
 | TR-DEP-04 | Supabase setup checklist: region, Auth settings (TR-AUTH-*), SMTP, email templates, redirect URLs, extensions, `pg_cron` jobs, Realtime authorization, backups, network restrictions (PROPOSED), Security/Performance Advisor clean. | Deployment guide (Phase 5) |
-| TR-DEP-05 | Hosting: any HTTPS static host that supports SPA rewrites + custom headers (candidates: Cloudflare Pages, Vercel, Netlify). Selection = OD-01. | — |
+| TR-DEP-05 | Hosting: any HTTPS static host that supports SPA rewrites + custom headers (candidates: Cloudflare Pages, Vercel, Netlify). Selection = OD-01. **v1.0:** staging runs on Cloudflare static assets (`wrangler.jsonc`, SPA fallback via `not_found_handling`). | — |
 | TR-DEP-06 | Domain + HTTPS: custom domain (OD-02) with automatic TLS. The same domain is registered in Supabase Auth Site URL / Redirect URLs and the email links. | — |
 | TR-DEP-07 | Email: custom SMTP provider with a verified sender domain (SPF, DKIM, DMARC). Supabase's built-in email service is for development only. | OD-03 |
 | TR-DEP-08 | Backup & recovery: daily backups; PROPOSED point-in-time recovery for production; documented restore drill before go-live; migrations reproducible from git. | OD-09 |
