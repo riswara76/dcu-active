@@ -224,7 +224,7 @@ select tests.call('00000000-0000-4000-8000-00000000ad01',
 select throws_ok(format($$select tests.call('00000000-0000-4000-8000-00000000ad01', format('select api.admin_remove_email_domain(%%L, %%L)', %L, 'Remove the last'))$$,
                         (select id from app.allowed_email_domains where domain = 'danamon.co.id' and removed_at is null)),
                  'P0001', 'LAST_DOMAIN_PROTECTED', 'TEST-53 the last domain cannot be removed');
-select is((select count(*)::int from app.audit_logs where action like 'DOMAIN_%'), 5, 'TEST-33 domain changes are audited');
+select is((select count(*)::int from app.audit_logs where action like 'DOMAIN_%' and actor_id = '00000000-0000-4000-8000-00000000ad01'), 5, 'TEST-33 domain changes are audited');
 
 ------------------------------------------------------------------------------------------------
 -- TEST-54: settings
@@ -242,9 +242,9 @@ select throws_ok($$select tests.call('00000000-0000-4000-8000-00000000ad01', $q$
 select is(tests.call('00000000-0000-4000-8000-00000000ad01',
           $q$select api.admin_update_setting('user_cancel_cutoff_minutes', '60', 'Longer notice for cancellations')$q$) -> 'value',
           '60'::jsonb, 'TEST-54 cutoff changed to 60');
-select is((select after from app.audit_logs where action = 'SETTING_UPDATE' and entity_id = 'user_cancel_cutoff_minutes'),
+select is((select after from app.audit_logs where action = 'SETTING_UPDATE' and entity_id = 'user_cancel_cutoff_minutes' and actor_id = '00000000-0000-4000-8000-00000000ad01'),
           '{"value": 60}'::jsonb, 'TEST-54 audit keeps the new value');
-select is((select before from app.audit_logs where action = 'SETTING_UPDATE' and entity_id = 'user_cancel_cutoff_minutes'),
+select is((select before from app.audit_logs where action = 'SETTING_UPDATE' and entity_id = 'user_cancel_cutoff_minutes' and actor_id = '00000000-0000-4000-8000-00000000ad01'),
           '{"value": 30}'::jsonb, 'TEST-54 audit keeps the old value');
 select tests.set_now('2030-01-07 08:31:00+07');
 select throws_ok(format($$select tests.call('00000000-0000-4000-8000-000000000209', format('select api.cancel_my_booking(%%L)', %L))$$,

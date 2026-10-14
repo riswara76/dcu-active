@@ -14,10 +14,11 @@ export function PublicOnly({ children }: { children: ReactNode }) {
 
 /** Requires a session, an active account and a verified email (BR-01). */
 export function RequireUser() {
-  const { session, sessionLoading, profile, profileLoading } = useAuth();
+  const { session, sessionLoading, profile, profileLoading, signedOutByUser } = useAuth();
   const location = useLocation();
   if (sessionLoading || profileLoading) return <Spinner label="Loading your account" />;
   if (!session) {
+    if (signedOutByUser) return <Navigate to="/login" replace />;
     const next = encodeURIComponent(location.pathname + location.search);
     return <Navigate to={`/login?next=${next}`} replace />;
   }

@@ -8,7 +8,7 @@ Booking platform for DCU sports and recreational facilities: a responsive web ap
 | 1 Architecture & UX | Approved (`docs/architecture/`, `docs/design/`, `docs/testing/TEST-PLAN.md`) |
 | 2 Backend & database | Built and tested locally (`docs/PHASE-2-REPORT.md`) |
 | 3 Frontend web/PWA | Built and tested locally (`docs/PHASE-3-REPORT.md`) |
-| 4 Integration, testing & hardening | Not started |
+| 4 Integration, testing & hardening | Local part done (E2E, Lighthouse, ZAP); staging steps in `docs/operations/STAGING-SETUP.md` |
 
 ## Repository layout
 

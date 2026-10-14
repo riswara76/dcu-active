@@ -9,6 +9,8 @@ import type { Profile } from '../lib/types';
 interface AuthState {
   session: Session | null;
   sessionLoading: boolean;
+  /** True after the user pressed Sign out (no "return to" link on the login page). */
+  signedOutByUser: boolean;
   profile: Profile | undefined;
   profileLoading: boolean;
   signOut: () => Promise<void>;
@@ -21,6 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const [session, setSession] = useState<Session | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
+  const [signedOutByUser, setSignedOutByUser] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -31,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     const { data } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);
+      if (next) setSignedOutByUser(false);
       // Realtime private channels authorise with the user's access token.
       if (next?.access_token) void supabase.realtime.setAuth(next.access_token);
       if (!next) queryClient.clear(); // nothing of the previous user stays in memory
@@ -58,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const signOut = useCallback(async () => {
+    setSignedOutByUser(true);
     await supabase.auth.signOut();
     queryClient.clear();
   }, [queryClient]);
@@ -66,12 +71,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       session,
       sessionLoading,
+      signedOutByUser,
       profile: profileQuery.data,
       profileLoading: Boolean(userId) && profileQuery.isPending,
       signOut,
       refreshProfile: profileQuery.refetch,
     }),
-    [session, sessionLoading, profileQuery.data, profileQuery.isPending, profileQuery.refetch, userId, signOut],
+    [session, sessionLoading, signedOutByUser, profileQuery.data, profileQuery.isPending, profileQuery.refetch, userId, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

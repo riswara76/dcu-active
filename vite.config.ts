@@ -43,7 +43,11 @@ function hostConfigFiles(headers: Record<string, string>): Plugin {
     name: 'dcu-host-config',
     apply: 'build',
     generateBundle() {
-      const lines = ['/*', ...Object.entries(headers).map(([k, v]) => `  ${k}: ${v}`)];
+      const lines = [
+        '/*', ...Object.entries(headers).map(([k, v]) => `  ${k}: ${v}`),
+        '', '/assets/*', '  Cache-Control: public, max-age=31536000, immutable', // content-hashed file names
+        '', '/sw.js', '  Cache-Control: no-cache',                               // always check for app updates
+      ];
       this.emitFile({ type: 'asset', fileName: '_headers', source: `${lines.join('\n')}\n` });
       this.emitFile({ type: 'asset', fileName: '_redirects', source: '/*    /index.html   200\n' });
     },
@@ -92,7 +96,8 @@ export default defineConfig(({ mode }) => {
       }),
     ],
     server: { port: 5173, strictPort: true },
-    preview: { port: 4173, strictPort: true, headers },
+    // host.docker.internal: lets the OWASP ZAP container scan the local preview (Phase 4 security testing).
+    preview: { port: 4173, strictPort: true, headers, allowedHosts: ['host.docker.internal'] },
     build: { target: 'es2022', sourcemap: false },
   };
 });

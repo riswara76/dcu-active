@@ -35,6 +35,20 @@ Scenario updates from Phase 3:
 - **TEST-32** ◐ automated axe on key components; manual screen-reader checks in Phase 4.
 - **TEST-30 / TEST-31** ◐ offline banner, PWA manifest and service worker built; device verification in Phase 4.
 
+### 1.2 Phase 4 — local part (2026-10-14)
+
+| Suite / check | Result |
+|---|---|
+| **E2E (Playwright 1.64)** against the production build + local Supabase: Android/Pixel 7 (full, 27 scenarios), iPhone 14/WebKit and Desktop Chrome (smoke, 7 each) | **41 / 41 passed** |
+| Lighthouse 13.5 mobile (simulated slow 4G, 4× CPU), login page | Performance 91, Accessibility 100, Best practices 100; LCP 2.6 s, CLS 0, TBT 210 ms |
+| OWASP ZAP baseline (production build) | **0 FAIL**, 62 PASS, 5 low/informational warnings (style `unsafe-inline` = DV-11; missing COEP accepted; cache headers fixed; JS comments / modern-app informational) |
+| `npm audit` (all and production-only) | 0 vulnerabilities |
+| Regression: pgTAP 197/197, integration 17/17 (2 consecutive runs), unit 38/38 | Passed |
+
+E2E scenarios covered: TEST-01, 02 (incl. K-01 fix), 03, 05, 08, 09, 17, 18, 22, 24, 25, 27, 30, 31, 32 (all public, user and admin pages: 0 serious/critical axe violations), 43 (live update < 3 s across two browsers), 48 (7 widths, no horizontal scroll; admin at 390 px), 49, 50, 52, 53, 54, FR-BKG-04, and the security headers.
+
+**Observation:** in one regression run, 1 of the 17 integration tests failed and was not reproduced in the next two runs; its name was not captured. It is monitored (the CI keeps the full log). Two DB tests were also made independent of audit rows written by other suites.
+
 ## 2. Defects found and fixed during Phase 2
 
 | # | Found by | Defect | Fix |
