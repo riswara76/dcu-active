@@ -10,6 +10,19 @@ Steps marked **PO** must be done by the account owner: creating projects, passwo
 
 ---
 
+## 0. Status (2026-10-14)
+
+| Item | Status |
+|---|---|
+| Supabase project `dcu-active-staging` (ref `fuklxwviqczplonpreuh`, Singapore, Free) | Created by PO. **13 migrations applied**; Auth/API settings pushed |
+| Hosting | Deployed: **https://dcu-active-staging.dcu-active.workers.dev** (Cloudflare static assets; Wrangler 4.150 hosts Pages-style sites on Workers) |
+| Staging smoke tests (no accounts created) | 9/9 PASS: domain hook, weak password, tables not exposed, anon limits, health/cron |
+| Supabase advisors | 0 ERROR; 23 WARN = intended SECURITY DEFINER RPCs (ADR-003); INFO only otherwise |
+| Custom email templates | **Not possible on Free + built-in email.** Staging uses Supabase default templates (link only) until custom SMTP (OD-03). The built-in sender also only delivers to project team members. |
+| First admin | Pending: PO creates the user in the dashboard (see 1.5) |
+
+**Windows note:** PowerShell on this PC blocks `npx` scripts. Use `npx.cmd …` (no policy change needed).
+
 ## 1. Supabase staging project
 
 ### 1.1 Create the project (PO)
@@ -56,8 +69,10 @@ In **Authentication → Settings / Providers / URL configuration / Hooks / Email
 
 ### 1.5 First administrator (PO + Dev)
 
-1. PO registers in the staging app with `ronny.iswara@danamon.co.id` and verifies the email.
-2. Dev runs `scripts/provision-admin.sql` against staging (via `npx supabase db query` or the SQL editor) with that email.
+Because staging has no custom SMTP yet, the verification email may not arrive. Create the admin directly instead:
+
+1. **PO:** Supabase dashboard → **Authentication → Users → Add user → Create new user**. Email `ronny.iswara@danamon.co.id`, a strong password of your choice, and tick **Auto Confirm User**.
+2. **Dev:** promote that account with `scripts/provision-admin.sql` (audited).
 
 ### 1.6 Checks (Dev)
 
@@ -84,8 +99,7 @@ A browser window opens; sign in to Cloudflare and click **Allow**.
 #   VITE_SUPABASE_URL=https://<ref>.supabase.co
 #   VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_…
 #   VITE_APP_ENV=staging
-npx wrangler pages project create dcu-active-staging --production-branch main
-npm run deploy:staging
+npm run deploy:staging      # build (mode staging) → bundle scan → wrangler deploy (wrangler.jsonc)
 ```
 
 The build writes `dist/_headers` (CSP, HSTS, security headers, cache rules) and `dist/_redirects` (SPA fallback), which Cloudflare Pages applies automatically.

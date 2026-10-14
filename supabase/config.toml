@@ -436,3 +436,11 @@ additional_redirect_urls = ["https://dcu-active-staging.dcu-active.workers.dev/a
 # Normal limits for hosted environments (the high local values exist only for automated tests).
 sign_in_sign_ups = 30
 token_verifications = 30
+
+# Keep the hosted defaults for things this app does not configure (do not resize the pooler, no vector storage).
+[remotes.staging.db.pooler]
+default_pool_size = 15
+max_client_conn = 200
+
+[remotes.staging.storage.vector]
+enabled = false
