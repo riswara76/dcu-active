@@ -419,3 +419,20 @@ enabled = true
 # formatted with uppercase keywords, indent 2, max width 180, trailing commas,
 # and column/key alignment. Set to "null" to emit raw, unformatted SQL.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":180,\"commaStyle\":\"trailing\"}"
+
+# ---------------------------------------------------------------------------------------------
+# STAGING overrides (applied with `supabase config push` to project fuklxwviqczplonpreuh).
+# Everything not listed here is taken from the sections above (password policy, confirmations,
+# Before-User-Created hook, email templates, exposed schema "api").
+# ---------------------------------------------------------------------------------------------
+[remotes.staging]
+project_id = "fuklxwviqczplonpreuh"
+
+[remotes.staging.auth]
+site_url = "https://dcu-active-staging.pages.dev"
+additional_redirect_urls = ["https://dcu-active-staging.pages.dev/auth/confirm", "https://dcu-active-staging.pages.dev/reset-password"]
+
+[remotes.staging.auth.rate_limit]
+# Normal limits for hosted environments (the high local values exist only for automated tests).
+sign_in_sign_ups = 30
+token_verifications = 30
