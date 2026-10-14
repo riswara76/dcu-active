@@ -185,7 +185,7 @@ function BookingScreen({ facility, todayWib, horizon, cutoff, checkinBefore, che
         ) : slots.every((s) => s.state === 'PAST') && !showPast ? (
           <Banner title="No more times today">Choose another date.</Banner>
         ) : (
-          <SlotGrid slots={slots} totalResources={availability.data.total_resources} selected={selected}
+          <SlotGrid slots={slots} totalResources={availability.data.total_resources} selected={selected} selectedEnd={end}
             onSelect={(s) => { setSelected(s); setDuration(null); }} showPast={showPast} />
         )}
         {lostSelection && (

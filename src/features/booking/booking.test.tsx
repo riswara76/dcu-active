@@ -47,6 +47,15 @@ describe('SlotGrid', () => {
     expect(onSelect).toHaveBeenCalledWith('09:00');
   });
 
+  it('highlights every slot covered by the chosen duration (UAT-02)', () => {
+    const run = [slot('13:30'), slot('14:00'), slot('14:30'), slot('15:00')];
+    render(<SlotGrid slots={run} totalResources={1} selected="13:30" selectedEnd="15:00" onSelect={() => {}} showPast={false} />);
+    expect(screen.getByRole('button', { name: '13:30 WIB, Selected, Available' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: '14:00 WIB, Included, Available' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: '14:30 WIB, Included, Available' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: '15:00 WIB, Available' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
   it('has no serious accessibility violations', async () => {
     const { container } = render(<SlotGrid slots={slots} totalResources={1} selected="09:00" onSelect={() => {}} showPast />);
     expect(await axeViolations(container)).toEqual([]);

@@ -5,6 +5,8 @@ interface Props {
   slots: Slot[];
   totalResources: number;
   selected: string | null;
+  /** End (HH:MM WIB) of the chosen booking; the slots from `selected` up to it are highlighted as one block. */
+  selectedEnd?: string | null;
   onSelect: (start: string) => void;
   showPast: boolean;
 }
@@ -24,7 +26,7 @@ const GROUPS = [
 ];
 
 /** Time-slot grid. State is always shown as text + icon, never colour alone (TR-A11Y-04/05). */
-export function SlotGrid({ slots, totalResources, selected, onSelect, showPast }: Props) {
+export function SlotGrid({ slots, totalResources, selected, selectedEnd, onSelect, showPast }: Props) {
   const visible = slots.filter((s) => showPast || s.state !== 'PAST');
   return (
     <div className="space-y-5">
@@ -38,7 +40,12 @@ export function SlotGrid({ slots, totalResources, selected, onSelect, showPast }
               {items.map((slot) => {
                 const text = slotText(slot, totalResources);
                 const selectable = slot.state === 'AVAILABLE';
-                const isSelected = selected === slot.start_wib && selectable;
+                const isStart = selected === slot.start_wib && selectable;
+                // Later slots covered by the chosen duration (e.g. 13:30 + 90 min also marks 14:00 and 14:30).
+                const isCovered = !isStart && selectable && selected !== null && selectedEnd != null
+                  && slot.start_wib > selected && slot.start_wib < selectedEnd;
+                const isSelected = isStart || isCovered;
+                const label = isCovered ? 'Included' : isStart ? 'Selected' : text;
                 const style = isSelected
                   ? 'border-primary bg-primary text-white'
                   : slot.is_mine && !selectable
@@ -57,14 +64,14 @@ export function SlotGrid({ slots, totalResources, selected, onSelect, showPast }
                       type="button"
                       aria-pressed={selectable ? isSelected : undefined}
                       aria-disabled={!selectable || undefined}
-                      aria-label={`${slot.start_wib} WIB, ${text}`}
+                      aria-label={`${slot.start_wib} WIB, ${isSelected ? `${label}, ` : ''}${text}`}
                       onClick={() => selectable && onSelect(slot.start_wib)}
                       className={`flex min-h-14 w-full flex-col items-center justify-center rounded-lg border px-1 py-1.5 text-center ${style} ${selectable ? '' : 'cursor-not-allowed'}`}
                     >
                       <span className="text-base font-bold tabular">{slot.start_wib}</span>
                       <span className="flex items-center gap-1 text-xs font-medium leading-tight">
                         <Icon className="size-3 shrink-0" aria-hidden="true" />
-                        {text}
+                        {label}
                       </span>
                     </button>
                   </li>

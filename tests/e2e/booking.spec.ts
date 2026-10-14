@@ -14,6 +14,8 @@ test('TEST-05 book Tennis for 60 minutes in five taps @smoke', async ({ page }) 
   // UAT-01: the duration choice must be on screen right after picking a time (no scrolling to find it).
   await expect(page.getByRole('radio', { name: '90 min' })).toBeInViewport();
   await page.getByRole('radio', { name: '60 min' }).click();
+  // UAT-02: the grid marks the whole booked block, not just the start slot.
+  await expect(page.getByRole('button', { name: '10:30 WIB, Included, Available' })).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('button', { name: 'Review booking' }).click();
   const sheet = page.getByRole('dialog', { name: 'Review your booking' });
   await expect(sheet.getByText('10:00–11:00 WIB')).toBeVisible();
