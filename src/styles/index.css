@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+/* Design tokens — UX-UI-SPECIFICATION §3 (contrast ratios verified 2026-10-14). */
+@theme {
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --color-primary: #C8102E;
+  --color-primary-hover: #991B1B;
+  --color-primary-soft: #FEF2F2;
+  --color-primary-soft-text: #B91C1C;
+  --color-header: #1F2937;
+  --color-ink: #111827;
+  --color-muted: #4B5563;
+  --color-subtle: #6B7280;
+  --color-disabled: #9CA3AF;
+  --color-surface: #F3F4F6;
+  --color-line: #D1D5DB;
+  --color-available: #14532D;
+  --color-available-bg: #DCFCE7;
+  --color-booked: #374151;
+  --color-booked-bg: #E5E7EB;
+  --color-success: #15803D;
+  --color-warning: #92400E;
+  --color-warning-bg: #FEF3C7;
+  --color-danger: #7F1D1D;
+  --color-danger-bg: #FEE2E2;
+}
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    @apply bg-white text-ink antialiased;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  /* Visible keyboard focus everywhere (TR-A11Y-03) */
+  :focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+  .tabular { font-variant-numeric: tabular-nums; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* Safe areas for installed PWA on iPhone */
+.pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+.pt-safe { padding-top: env(safe-area-inset-top); }

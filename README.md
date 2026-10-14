@@ -7,7 +7,8 @@ Booking platform for DCU sports and recreational facilities: a responsive web ap
 | 0 Requirements | Approved (`docs/requirements/`) |
 | 1 Architecture & UX | Approved (`docs/architecture/`, `docs/design/`, `docs/testing/TEST-PLAN.md`) |
 | 2 Backend & database | Built and tested locally (`docs/PHASE-2-REPORT.md`) |
-| 3 Frontend web/PWA | Not started |
+| 3 Frontend web/PWA | Built and tested locally (`docs/PHASE-3-REPORT.md`) |
+| 4 Integration, testing & hardening | Not started |
 
 ## Repository layout
 
@@ -18,6 +19,8 @@ supabase/
   tests/               pgTAP database tests (*.test.sql) + shared helpers (_helpers.psql)
   templates/           verification and password-reset email templates
   seed.sql             LOCAL test accounts only
+src/                   React + TypeScript SPA (app/, features/, components/, lib/)
+public/                icons, favicon
 scripts/provision-admin.sql   promote the first administrator (staging/production)
 tests/integration/     API and concurrency tests (Vitest + supabase-js + pg)
 docs/                  requirements, architecture, design, test plan and results
@@ -34,6 +37,11 @@ npm run db:test           # pgTAP database tests
 npm run test:integration  # API + concurrency tests against the local stack
 npm run db:lint           # plpgsql_check lint
 npm run db:reset          # rebuild the local database from migrations + seed
+cp .env.example .env.local   # then set VITE_SUPABASE_PUBLISHABLE_KEY from `npx supabase status`
+npm run dev               # app at http://localhost:5173
+npm test                  # frontend unit/component tests
+npm run lint && npm run typecheck
+npm run build && npm run preview   # production build with security headers (http://localhost:4173)
 ```
 
 - **Local services:** Studio at http://127.0.0.1:54323 and the mail catcher (verification codes) at http://127.0.0.1:54324.

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="DCU Active">
+  <rect width="512" height="512" rx="112" fill="#C8102E"/>
+  <circle cx="256" cy="256" r="150" fill="none" stroke="#FFFFFF" stroke-width="28"/>
+  <path d="M256 106 C 196 176, 196 336, 256 406 M256 106 C 316 176, 316 336, 256 406 M112 216 H 400 M112 296 H 400"
+        fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round"/>
+  <circle cx="390" cy="122" r="44" fill="#1F2937" stroke="#FFFFFF" stroke-width="14"/>
+</svg>

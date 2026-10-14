@@ -16,6 +16,25 @@
 | Database lint (`plpgsql_check`) | `npm run db:lint` | 0 errors, 0 warnings; 1 informational ("extra") note on a composite OUT parameter |
 | TypeScript check of test code | `npx tsc -p tsconfig.json` | passed |
 
+### 1.1 Phase 3 additions (2026-10-14)
+
+| Suite | Command | Result |
+|---|---|---|
+| Frontend unit & component tests (jsdom, device timezone America/New_York) | `npm test` | **38 / 38 passed** (incl. axe checks: 0 serious/critical) |
+| ESLint (jsx-a11y, react-hooks 7, `react/no-danger`) | `npm run lint` | 0 errors |
+| TypeScript strict | `npm run typecheck` | 0 errors |
+| Production build + bundle secret scan (TEST-35) | `npm run build:only && npm run scan:bundle` | Passed; scanner self-test with planted keys fails as expected |
+| Manual run in browser (production build with CSP, local backend) | — | Login → Futsal 60 min booking → review → confirmation → live badge → cancel; admin dashboard and settings; 0 console errors |
+
+Scenario updates from Phase 3:
+
+- **TEST-27** ✔ unit: WIB formatting with a non-Jakarta device timezone.
+- **TEST-35** ✔ CI scan.
+- **TEST-50** ✔ unit: 9 malicious `next` values rejected, plus the login redirect.
+- **TEST-47** ◐ unit: no raw error text; reference shown for unexpected errors.
+- **TEST-32** ◐ automated axe on key components; manual screen-reader checks in Phase 4.
+- **TEST-30 / TEST-31** ◐ offline banner, PWA manifest and service worker built; device verification in Phase 4.
+
 ## 2. Defects found and fixed during Phase 2
 
 | # | Found by | Defect | Fix |

@@ -9,6 +9,29 @@ permissions:
   contents: read
 
 jobs:
+  frontend:
+    name: Frontend lint, types, unit tests, build and bundle scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - name: Build (public placeholder values only)
+        run: npm run build:only
+        env:
+          VITE_SUPABASE_URL: https://example.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+          VITE_APP_ENV: ci
+      - name: TEST-35 bundle secret scan
+        run: npm run scan:bundle
+
   database:
     name: Database, security and concurrency tests
     runs-on: ubuntu-latest
