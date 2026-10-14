@@ -45,7 +45,7 @@ In **Authentication → Settings / Providers / URL configuration / Hooks / Email
 
 | Setting | Value |
 |---|---|
-| Site URL | `https://dcu-active-staging.pages.dev` (or the custom staging domain) |
+| Site URL | `https://dcu-active-staging.dcu-active.workers.dev` (or the custom staging domain) |
 | Redirect URLs | `<site>/auth/confirm`, `<site>/reset-password` |
 | Email provider | Enabled; **Confirm email ON**; other providers off |
 | Password | Minimum 8; lower + upper + digits + symbols; leaked-password protection if available |
@@ -92,7 +92,7 @@ The build writes `dist/_headers` (CSP, HSTS, security headers, cache rules) and 
 
 ### 2.3 Checks (Dev)
 
-- `https://dcu-active-staging.pages.dev` loads over HTTPS. Response headers include the CSP and `Strict-Transport-Security`.
+- `https://dcu-active-staging.dcu-active.workers.dev` loads over HTTPS. Response headers include the CSP and `Strict-Transport-Security`.
 - Sign-up from an allowed domain works; a Gmail address is refused.
 - The E2E suite can be pointed at staging for a smoke run.
 

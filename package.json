@@ -24,7 +24,7 @@
     "test:integration": "vitest run --config tests/integration/vitest.config.ts",
     "test:concurrency": "vitest run --config tests/integration/vitest.config.ts tests/integration/concurrency",
     "test:e2e": "playwright test",
-    "deploy:staging": "tsc -p tsconfig.json && vite build --mode staging && npm run scan:bundle && wrangler pages deploy dist --project-name dcu-active-staging --branch main"
+    "deploy:staging": "tsc -p tsconfig.json && vite build --mode staging && npm run scan:bundle && wrangler deploy"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",

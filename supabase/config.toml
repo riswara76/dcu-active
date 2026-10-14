@@ -429,8 +429,8 @@ enabled = true
 project_id = "fuklxwviqczplonpreuh"
 
 [remotes.staging.auth]
-site_url = "https://dcu-active-staging.pages.dev"
-additional_redirect_urls = ["https://dcu-active-staging.pages.dev/auth/confirm", "https://dcu-active-staging.pages.dev/reset-password"]
+site_url = "https://dcu-active-staging.dcu-active.workers.dev"
+additional_redirect_urls = ["https://dcu-active-staging.dcu-active.workers.dev/auth/confirm", "https://dcu-active-staging.dcu-active.workers.dev/reset-password"]
 
 [remotes.staging.auth.rate_limit]
 # Normal limits for hosted environments (the high local values exist only for automated tests).

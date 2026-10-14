@@ -49,7 +49,7 @@ function hostConfigFiles(headers: Record<string, string>): Plugin {
         '', '/sw.js', '  Cache-Control: no-cache',                               // always check for app updates
       ];
       this.emitFile({ type: 'asset', fileName: '_headers', source: `${lines.join('\n')}\n` });
-      this.emitFile({ type: 'asset', fileName: '_redirects', source: '/*    /index.html   200\n' });
+      // SPA fallback is handled by the host (Cloudflare assets not_found_handling = "single-page-application").
     },
   };
 }
