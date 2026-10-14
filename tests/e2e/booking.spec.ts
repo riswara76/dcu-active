@@ -11,6 +11,8 @@ test('TEST-05 book Tennis for 60 minutes in five taps @smoke', async ({ page }) 
   await login(page, email);
   await openFacility(page, 'TENNIS', date);
   await page.getByRole('button', { name: '10:00 WIB, Available' }).click();
+  // UAT-01: the duration choice must be on screen right after picking a time (no scrolling to find it).
+  await expect(page.getByRole('radio', { name: '90 min' })).toBeInViewport();
   await page.getByRole('radio', { name: '60 min' }).click();
   await page.getByRole('button', { name: 'Review booking' }).click();
   const sheet = page.getByRole('dialog', { name: 'Review your booking' });

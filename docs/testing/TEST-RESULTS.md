@@ -111,3 +111,9 @@ E2E scenarios covered: TEST-01, 02 (incl. K-01 fix), 03, 05, 08, 09, 17, 18, 22,
 | TEST-52 Domain restriction | ✔ DB + API | Real sign-ups: `@gmail.com`, subdomain, and look-alike rejected; `@ADIRA.co.id` accepted |
 | TEST-53 Domain management | ✔ DB | Add/rename/remove, immediate effect on the hook, existing users unaffected, admin grant requires an allowed domain, last domain protected, audited |
 | TEST-54 Settings & cancel cutoff | ✔ DB | 17:30:00 allowed / 17:30:01 refused; cutoff 60 applies immediately; ranges, read-only keys, reason, audit old/new; existing bookings untouched |
+
+## Staging and UAT findings
+
+| ID | Date | Found by | Finding | Fix | Status |
+|---|---|---|---|---|---|
+| UAT-01 | 2026-10-14 | PO (Android, staging) | Football Field looked bookable for 30 minutes only. The server offered 30/60/90 (FR-BKG-01, OD-19), but on phones the Duration chips sat below the long slot grid, out of view, while the sticky bar already showed "30 min". | Duration chips moved into the sticky action bar (also sticky on desktop), so they are on screen as soon as a time is picked. TEST-05 now asserts the chips are in the viewport. E2E 41/41 pass. Deployed to staging. | Fixed; PO to re-test |

@@ -194,14 +194,18 @@ function BookingScreen({ facility, todayWib, horizon, cutoff, checkinBefore, che
       </section>
 
       {facility.allowed_durations.length > 1 && selectionValid && (
-        <section className="mt-5" aria-labelledby="dur-h">
-          <h2 id="dur-h" className="mb-2 font-semibold">Duration</h2>
-          <DurationChips allowed={facility.allowed_durations} bookable={bookable} value={effectiveDuration} onChange={setDuration} />
-        </section>
+        <div className="h-14 md:hidden" aria-hidden="true" /> // room for the taller sticky bar so the last slots stay reachable
       )}
 
-      {/* Sticky action bar (thumb zone on mobile, TR-RWD-04) */}
-      <div className="fixed inset-x-0 bottom-14 z-10 border-t border-line bg-white/95 px-4 py-3 backdrop-blur md:static md:mt-6 md:border-0 md:bg-transparent md:p-0">
+      {/* Sticky action bar (thumb zone on mobile, TR-RWD-04). The duration choice lives here so it stays on screen
+          after a time is picked; below a long slot grid it was out of view on phones (UAT finding UAT-01). */}
+      <div className="fixed inset-x-0 bottom-14 z-10 border-t border-line bg-white/95 px-4 py-3 backdrop-blur md:sticky md:bottom-0 md:mt-6">
+        {facility.allowed_durations.length > 1 && selectionValid && (
+          <section className="mx-auto mb-3 flex max-w-5xl items-center gap-3" aria-labelledby="dur-h">
+            <h2 id="dur-h" className="text-sm font-semibold">Duration</h2>
+            <DurationChips allowed={facility.allowed_durations} bookable={bookable} value={effectiveDuration} onChange={setDuration} />
+          </section>
+        )}
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
           <p className="text-sm text-muted" aria-live="polite">
             {!activity && multiActivity ? 'Choose an activity'
