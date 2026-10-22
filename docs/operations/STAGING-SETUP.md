@@ -22,6 +22,7 @@ Steps marked **PO** must be done by the account owner: creating projects, passwo
 | First admin | **Done 2026-10-14:** `ronny.iswara@danamon.co.id` created by PO (dashboard, auto-confirmed) and promoted to ADMIN with `scripts/provision-admin.sql` (audit row ROLE_GRANT, actor SYSTEM) |
 | GitHub | Pushed to `riswara76/dcu-active` (branch `main`) |
 | CR-03 Classes (2026-10-22) | Migrations 0014–0015 applied to staging; frontend redeployed. Checks: 15 class RPCs present, none executable by `anon`, setting `max_active_class_enrolments` present, status job healthy. |
+| UAT test accounts (2026-10-22) | Created with `scripts/create-test-accounts.sql` because Danamon email/SMTP (OD-03) is not available yet: `admin1`–`admin2@dcu-active.test` (ADMIN) and `user1`–`user5@dcu-active.test` (USER), already confirmed, no email sent. Password agreed with the PO (not stored in the repo). Test domain `dcu-active.test` added to the allow-list (audited). **After UAT:** deactivate these accounts and remove the domain. |
 
 **Windows note:** PowerShell on this PC blocks `npx` scripts. Use `npx.cmd …` (no policy change needed).
 
