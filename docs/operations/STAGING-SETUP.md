@@ -21,6 +21,7 @@ Steps marked **PO** must be done by the account owner: creating projects, passwo
 | Custom email templates | **Not possible on Free + built-in email.** Staging uses Supabase default templates (link only) until custom SMTP (OD-03). The built-in sender also only delivers to project team members. |
 | First admin | **Done 2026-10-14:** `ronny.iswara@danamon.co.id` created by PO (dashboard, auto-confirmed) and promoted to ADMIN with `scripts/provision-admin.sql` (audit row ROLE_GRANT, actor SYSTEM) |
 | GitHub | Pushed to `riswara76/dcu-active` (branch `main`) |
+| CR-03 Classes (2026-10-22) | Migrations 0014–0015 applied to staging; frontend redeployed. Checks: 15 class RPCs present, none executable by `anon`, setting `max_active_class_enrolments` present, status job healthy. |
 
 **Windows note:** PowerShell on this PC blocks `npx` scripts. Use `npx.cmd …` (no policy change needed).
 

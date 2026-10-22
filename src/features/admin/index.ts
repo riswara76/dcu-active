@@ -3,6 +3,7 @@ export { AdminLayout } from '../../app/layouts';
 export { AdminDashboardPage } from './AdminDashboardPage';
 export { AdminBookingsPage } from './AdminBookingsPage';
 export { AdminBlocksPage } from './AdminBlocksPage';
+export { AdminClassesPage, AdminNewClassPage, AdminClassDetailPage } from './AdminClassesPages';
 export { AdminUsersPage, AdminUserDetailPage } from './AdminUsersPages';
 export { AdminSettingsPage } from './AdminSettingsPage';
 export { AdminAuditPage } from './AdminAuditPage';

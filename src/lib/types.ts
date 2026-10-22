@@ -133,7 +133,7 @@ export interface BlockPreview { conflicts: Conflict[]; affected_users: number; s
 export interface BlockItem {
   id: string; facility_code: string; facility_name: string; resource_name: string;
   start_at: string; end_at: string; start_wib: string; end_wib: string;
-  category: 'MAINTENANCE' | 'EVENT' | 'OPERATIONAL' | 'OTHER'; reason: string;
+  category: 'MAINTENANCE' | 'EVENT' | 'OPERATIONAL' | 'OTHER' | 'CLASS'; reason: string;
   created_by_name: string; created_at: string; removed_at: string | null; removed_by_name: string | null;
   removal_reason: string | null; cancelled_bookings: number;
 }
@@ -162,4 +162,97 @@ export interface DomainItem {
 export interface AuditItem {
   id: number; occurred_at: string; actor_name: string; actor_role: string; action: string;
   entity_type: string; entity_id: string; before: unknown; after: unknown; reason: string | null;
+}
+
+// ---- Classes (CR-03) ----
+export interface ClassLocation { type: 'FACILITY' | 'ROOM'; name: string; facility_code: string | null }
+
+export interface ClassEnrolment {
+  id: string;
+  session_id: string;
+  class: { id: string; title: string; instructor: string | null };
+  location: ClassLocation;
+  date_wib: string;
+  start_wib: string;
+  end_wib: string;
+  start_at: string;
+  end_at: string;
+  duration_minutes: number;
+  session_status: 'SCHEDULED' | 'CANCELLED';
+  status: BookingStatus;
+  effective_status: EffectiveStatus;
+  checkin_opens_wib: string;
+  checkin_closes_wib: string;
+  cancel_until_wib: string;
+  can_cancel: boolean;
+  can_check_in: boolean;
+  cancel_source: 'USER' | 'ADMIN' | 'BLOCK' | 'DEACTIVATION' | null;
+  cancellation_reason: string | null;
+  checked_in_at: string | null;
+  cancelled_at: string | null;
+  created_at: string;
+}
+
+export interface ClassSession {
+  id: string;
+  class: { id: string; title: string; description: string | null; instructor: string | null };
+  location: ClassLocation;
+  date_wib: string;
+  start_wib: string;
+  end_wib: string;
+  start_at: string;
+  end_at: string;
+  duration_minutes: number;
+  status: 'SCHEDULED' | 'CANCELLED';
+  capacity: number;
+  enrolled_count: number;
+  spots_left: number;
+  my_enrolment: ClassEnrolment | null;
+  can_enrol: boolean;
+}
+
+/** Schedule sent to the admin RPCs. repeat_weekdays: ISO weekdays (1 = Monday … 7 = Sunday); empty = one session. */
+export interface ClassSchedule {
+  start_date: string;
+  start_time: string;
+  duration_minutes: number;
+  repeat_weekdays: number[];
+  until_date: string | null;
+}
+
+export interface ClassPreview {
+  sessions: { date_wib: string; start_wib: string; end_wib: string }[];
+  conflicts: Conflict[];
+  class_clashes: { class_title: string; date_wib: string; start_wib: string; end_wib: string }[];
+  summary: string;
+}
+
+export interface AdminClassItem {
+  id: string; title: string; instructor: string | null; capacity: number; is_active: boolean; location: ClassLocation;
+  upcoming_sessions: number;
+  next_session: { id: string; date_wib: string; start_wib: string; end_wib: string; enrolled_count: number; capacity: number } | null;
+  created_at: string;
+}
+
+export interface AdminClassSession {
+  id: string; date_wib: string; start_wib: string; end_wib: string; start_at: string; end_at: string;
+  status: 'SCHEDULED' | 'CANCELLED'; capacity: number; enrolled_count: number; checked_in_count: number;
+  no_show_count: number; is_past: boolean; cancellation_reason: string | null;
+}
+
+export interface AdminClassDetail {
+  id: string; title: string; description: string | null; instructor: string | null; capacity: number; is_active: boolean;
+  location: ClassLocation; location_text: string | null; created_at: string; created_by_name: string;
+  sessions: AdminClassSession[];
+}
+
+export interface ClassParticipant {
+  enrolment_id: string; user_id: string; full_name: string; email: string; status: BookingStatus;
+  effective_status: EffectiveStatus; joined_at: string; checked_in_at: string | null; cancelled_at: string | null;
+  cancellation_reason: string | null;
+}
+
+export interface ClassMetrics {
+  sessions: number; enrolled: number; attended: number; no_show: number; capacity: number;
+  by_class: { title: string; sessions: number; capacity: number; enrolled: number; attended: number }[];
 }

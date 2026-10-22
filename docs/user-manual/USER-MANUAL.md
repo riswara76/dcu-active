@@ -4,7 +4,7 @@
 |---|---|
 | Aplikasi | DCU Active — booking fasilitas olahraga & rekreasi DCU |
 | Versi aplikasi | Rilis staging 14 Oktober 2026 |
-| Versi dokumen | 1.0 |
+| Versi dokumen | 1.1 (menambah fitur Kelas) |
 | Untuk | Karyawan Danamon, Adira, dan Home Credit (Bagian A) serta Admin DCU (Bagian B) |
 | Bahasa layar aplikasi | Inggris (istilah di layar ditulis **tebal** sesuai tampilan) |
 
@@ -211,6 +211,28 @@ Bila belum waktunya, aplikasi menampilkan jam dibukanya check-in. Bila sudah lew
 
 Pembatalan hanya bisa dilakukan paling lambat **30 menit sebelum mulai**. Setelah itu tombol tidak tersedia. Jam yang dibatalkan langsung tersedia untuk orang lain, dan batas "1 booking per fasilitas per hari" untuk hari itu terbuka kembali.
 
+## 6A. Kelas (misalnya Yoga)
+
+Selain booking fasilitas, DCU juga mengadakan **kelas** yang dipandu instruktur. Buka menu **Classes** di bagian bawah layar.
+
+![Classes: jadwal kelas](img/18-classes-schedule.png)
+
+- Tab **Schedule** menampilkan kelas 14 hari ke depan: jam, lokasi, instruktur, deskripsi, dan sisa tempat (mis. "5 of 12 left").
+- Tekan **Join class**, lalu **Join class** sekali lagi untuk konfirmasi. Tempat diberikan berdasarkan siapa cepat dia dapat; kelas yang penuh menampilkan **Class full**.
+- Tab **My classes** menampilkan kelas yang Anda ikuti (**Upcoming**) dan riwayatnya (**History**).
+- Aturan kelas sama dengan booking: keluar dari kelas (**Leave class**) paling lambat **30 menit sebelum mulai**; **check-in** mulai 15 menit sebelum sampai 15 menit sesudah jam mulai; tidak check-in = **No-show**.
+- Batas kelas terpisah dari booking fasilitas: maksimal **2 kelas yang akan datang** per orang. Anda tidak bisa ikut dua kelas di jam yang sama.
+![My classes](img/19-classes-mine.png)
+
+- Halaman **Home** menampilkan **Your next class** dan tombol **Check in to class** saat jendela check-in terbuka.
+- Bila kelas diadakan di sebuah fasilitas (mis. Tennis Court), slot fasilitas itu tertulis **Unavailable – Class: <nama kelas>** dan tidak bisa dibooking.
+
+| Pesan | Arti |
+|---|---|
+| Sorry, this class is full. | Tempat sudah habis. |
+| You can join up to 2 upcoming classes. | Batas 2 kelas aktif tercapai. |
+| You already have another class at this time. | Jadwal bentrok dengan kelas lain yang Anda ikuti. |
+
 ## 7. Notifikasi
 
 ![Notifications](img/16-notifications.png)
@@ -290,6 +312,36 @@ Gunakan fitur ini untuk menutup fasilitas atau satu meja sementara, misalnya kar
 5. Tekan **Check impact**. Sistem menampilkan booking yang akan terdampak.
 6. Bila ada booking yang bertabrakan, centang konfirmasi bahwa Anda memahami booking tersebut akan dibatalkan, lalu tekan **Create block**. Pemilik booking menerima notifikasi.
 7. Blok yang sudah ada tampil di daftar **Blocks** dan dapat dihapus (dengan alasan). Centang **Show removed** untuk melihat blok yang sudah dihapus.
+
+## 13A. Classes (mengelola kelas)
+
+Menu **Classes** di area Admin dipakai untuk membuat dan memantau kelas.
+
+![Daftar kelas (Admin)](img/27-admin-classes.png)
+
+**Membuat kelas** (**New class**):
+1. Isi **Class name**, **Instructor** (opsional), **Capacity** (tempat per sesi), dan **Description** (opsional, terlihat oleh pengguna).
+2. Pilih **Location**:
+   - **Separate room**: tulis lokasi ruangan (mis. "Studio, Lt. 2"). Tidak memengaruhi booking fasilitas.
+   - **Existing facility**: pilih fasilitas. Selama sesi berlangsung, slot fasilitas itu otomatis tertutup.
+3. Atur **Schedule (WIB)**: tanggal sesi pertama, jam mulai, dan durasi. Untuk kelas rutin centang **Repeat every week**, pilih harinya (mis. Tue dan Fri), dan isi **Repeat until** (maks. 26 minggu / 60 sesi sekali buat).
+4. Tekan **Check schedule** untuk melihat daftar sesi. Untuk kelas di fasilitas, sistem menampilkan booking yang bentrok; centang konfirmasi bila booking itu memang akan dibatalkan (pemiliknya mendapat notifikasi). Kelas lain di fasilitas yang sama pada jam yang sama tidak diizinkan.
+5. Tekan **Create class**.
+
+![Membuat kelas baru: jadwal mingguan setiap Minggu](img/28-admin-class-new.png)
+
+**Memantau dan mengubah kelas** (klik nama kelas):
+
+![Detail kelas: sesi, peserta, dan tambah sesi](img/29-admin-class-detail.png)
+
+- Tabel **Sessions** menampilkan per sesi: **Places taken**, **Checked in**, **No-show**, dan status.
+- **Participants** menampilkan daftar peserta beserta statusnya.
+- **Cancel** membatalkan satu sesi (wajib alasan). Peserta mendapat notifikasi, dan fasilitas yang dipakai kembali bisa dibooking.
+- **Edit** mengubah nama, instruktur, deskripsi, ruangan, atau kapasitas (kapasitas berlaku untuk sesi mendatang dan tidak boleh lebih kecil dari tempat yang sudah terisi).
+- **Add sessions** menambah sesi baru dengan cara yang sama seperti saat membuat kelas.
+- **End class** membatalkan semua sesi mendatang (wajib alasan) dan menyembunyikan kelas dari pengguna.
+
+**Dashboard** kini juga menampilkan bagian **Classes**: jumlah sesi, tempat terisi, kehadiran (**Attended**), dan **No-show** per hari, serta tingkat keterisian per kelas. Batas kelas per pengguna diatur di **Settings → Max upcoming class enrolments per user**.
 
 ## 14. Users
 

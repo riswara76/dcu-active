@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { Dialog as RDialog } from 'radix-ui';
 import {
-  Bell, CalendarCheck, ClipboardList, Dumbbell, Gauge, Home, Menu, Settings, ShieldCheck, Ban, User, Users, X, ArrowLeft,
+  Bell, CalendarCheck, ClipboardList, Dumbbell, Gauge, GraduationCap, Home, Menu, Settings, ShieldCheck, Ban, User, Users, X, ArrowLeft,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../auth/AuthProvider';
@@ -43,6 +43,7 @@ export function AuthLayout() {
 const USER_NAV = [
   { to: '/', label: 'Home', icon: Home, end: true },
   { to: '/facilities', label: 'Facilities', icon: Dumbbell, end: false },
+  { to: '/classes', label: 'Classes', icon: Users, end: false },
   { to: '/bookings', label: 'My bookings', icon: CalendarCheck, end: false },
   { to: '/profile', label: 'Profile', icon: User, end: false },
 ];
@@ -98,7 +99,7 @@ export function UserLayout() {
         <Outlet />
       </main>
       <nav aria-label="Main" className="pb-safe fixed inset-x-0 bottom-0 z-20 border-t border-line bg-white md:hidden">
-        <ul className="grid grid-cols-4">
+        <ul className="grid grid-cols-5">
           {USER_NAV.map(({ to, label, icon: Icon, end }) => (
             <li key={to}>
               <NavLink to={to} end={end}
@@ -118,6 +119,7 @@ const ADMIN_NAV = [
   { to: '/admin', label: 'Dashboard', icon: Gauge, end: true },
   { to: '/admin/bookings', label: 'Bookings', icon: CalendarCheck, end: false },
   { to: '/admin/blocks', label: 'Facility blocks', icon: Ban, end: false },
+  { to: '/admin/classes', label: 'Classes', icon: GraduationCap, end: false },
   { to: '/admin/users', label: 'Users', icon: Users, end: false },
   { to: '/admin/settings', label: 'Settings', icon: Settings, end: false },
   { to: '/admin/audit', label: 'Audit log', icon: ClipboardList, end: false },

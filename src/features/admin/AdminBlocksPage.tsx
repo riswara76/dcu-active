@@ -18,6 +18,8 @@ const CATEGORIES = [
   { value: 'OPERATIONAL', label: 'Operational restriction' },
   { value: 'OTHER', label: 'Other' },
 ];
+// Class blocks are created from the Classes screen; shown here read-only.
+const LABELS: Record<string, string> = { ...Object.fromEntries(CATEGORIES.map((c) => [c.value, c.label])), CLASS: 'Class' };
 const RESOURCES: Record<string, { code: string; name: string }[]> = {
   AIR_HOCKEY: [{ code: 'AIR_HOCKEY_1', name: 'Air Hockey Table 1' }, { code: 'AIR_HOCKEY_2', name: 'Air Hockey Table 2' }],
   FOOSBALL: [{ code: 'FOOSBALL_1', name: 'Foosball Table 1' }, { code: 'FOOSBALL_2', name: 'Foosball Table 2' }],
@@ -164,11 +166,13 @@ export function AdminBlocksPage() {
             { header: 'Facility', cell: (b) => `${b.facility_name} · ${b.resource_name}` },
             { header: 'From', cell: (b) => b.start_wib },
             { header: 'To', cell: (b) => b.end_wib },
-            { header: 'Category', cell: (b) => CATEGORIES.find((c) => c.value === b.category)?.label },
+            { header: 'Category', cell: (b) => LABELS[b.category] },
             { header: 'Reason', cell: (b) => b.reason },
             { header: 'By', cell: (b) => b.removed_at ? <span className="text-muted">Removed by {b.removed_by_name}</span> : b.created_by_name },
           ]}
-          actions={(b) => !b.removed_at && <Button size="sm" variant="danger" onClick={() => { remove.reset(); setToRemove(b); }}>Remove</Button>} />
+          actions={(b) => !b.removed_at && (b.category === 'CLASS'
+            ? <span className="text-sm text-muted">Managed in Classes</span>
+            : <Button size="sm" variant="danger" onClick={() => { remove.reset(); setToRemove(b); }}>Remove</Button>)} />
       )}
 
       <ConfirmDialog

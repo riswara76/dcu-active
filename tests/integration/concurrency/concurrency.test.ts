@@ -163,3 +163,26 @@ describe('concurrency', () => {
     }
   });
 });
+
+describe('concurrency — classes (CR-03)', () => {
+  it('TEST-58: 30 users join a 5-place class at the same moment → exactly 5 places taken (20 iterations)', async () => {
+    for (let i = 0; i < 20; i++) {
+      const created = await rpc(admin, 'admin_create_class', {
+        p_title: `Race ${i}`, p_description: null, p_instructor: null, p_facility_code: null,
+        p_location_text: 'Studio race', p_capacity: 5,
+        p_schedule: { start_date: dates[i % dates.length], start_time: SLOTS[(i * 5) % SLOTS.length], duration_minutes: 30,
+                      repeat_weekdays: [], until_date: null },
+      });
+      expect(created.ok).toBe(true);
+      const session = (created as { data: { session_ids: string[] } }).data.session_ids[0];
+      const results = await Promise.all(users.map((u) =>
+        rpc(u, 'enrol_class_session', { p_session_id: session, p_idempotency_key: randomUUID() })));
+      expect(results.filter((r) => r.ok)).toHaveLength(5);
+      expect(new Set(codesOf(results))).toEqual(new Set(['CLASS_FULL']));
+      const { rows } = await db.query(
+        `select count(*)::int n from app.class_enrolments where session_id = $1 and status = 'CONFIRMED'`, [session]);
+      expect(rows[0].n).toBe(5);
+      await resetBookings();
+    }
+  });
+});

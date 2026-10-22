@@ -23,6 +23,7 @@ export function AdminDashboardPage() {
   const [date, setDate] = useState<string | null>(null);
   const day = date ?? config.data?.today_wib ?? null;
   const metrics = useQuery({ queryKey: ['admin', 'dashboard', day], queryFn: () => api.dashboard(day!, day!), enabled: Boolean(day), refetchInterval: 60_000 });
+  const classMetrics = useQuery({ queryKey: ['admin', 'class-metrics', day], queryFn: () => api.classMetrics(day!, day!), enabled: Boolean(day), refetchInterval: 60_000 });
   const upcoming = useQuery({
     queryKey: ['admin', 'bookings', 'today', day],
     queryFn: () => api.adminBookings({ date_from: day, date_to: day, status: ['CONFIRMED', 'CHECKED_IN'] }, null, 100),
@@ -64,6 +65,38 @@ export function AdminDashboardPage() {
           </section>
         </>
       )}
+      <section className="mt-6 rounded-xl border border-line bg-white p-4" aria-labelledby="cls-h">
+        <h2 id="cls-h" className="text-lg font-bold">Classes</h2>
+        <p className="text-sm text-muted">Sessions starting on this day. Attended = checked in.</p>
+        {classMetrics.isPending ? <Skeleton className="mt-3 h-20" /> : classMetrics.isError ? <ErrorState error={classMetrics.error} /> : (
+          <>
+            <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+              <Stat label="Sessions" value={classMetrics.data.sessions} />
+              <Stat label="Places taken" value={classMetrics.data.enrolled} />
+              <Stat label="Attended" value={classMetrics.data.attended} />
+              <Stat label="No-show" value={classMetrics.data.no_show} />
+            </div>
+            {classMetrics.data.by_class.length > 0 && (
+              <ul className="mt-4 space-y-3">
+                {classMetrics.data.by_class.map((c) => {
+                  const pct = c.capacity ? Math.round((c.enrolled / c.capacity) * 100) : 0;
+                  return (
+                    <li key={c.title}>
+                      <div className="flex justify-between text-sm">
+                        <span className="font-semibold">{c.title}</span>
+                        <span className="tabular">{c.enrolled}/{c.capacity} places · {c.attended} attended</span>
+                      </div>
+                      <div className="mt-1 h-2.5 overflow-hidden rounded-full bg-surface" aria-hidden="true">
+                        <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, pct)}%` }} />
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </>
+        )}
+      </section>
       <section className="mt-6" aria-labelledby="up-h">
         <h2 id="up-h" className="mb-2 text-lg font-bold">Active bookings on this day</h2>
         {upcoming.isPending ? <Skeleton className="h-32" /> : upcoming.isError ? <ErrorState error={upcoming.error} /> : upcoming.data.items.length === 0 ? (

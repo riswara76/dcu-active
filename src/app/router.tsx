@@ -12,6 +12,7 @@ import { HomePage } from '../features/home/HomePage';
 import { FacilitiesPage } from '../features/booking/FacilitiesPage';
 import { FacilityBookingPage } from '../features/booking/FacilityBookingPage';
 import { BookingConfirmedPage, BookingDetailPage, MyBookingsPage } from '../features/bookings/BookingsPages';
+import { ClassesPage } from '../features/classes/ClassesPage';
 import { ChangePasswordPage, HelpPage, NotificationsPage, PrivacyPage, ProfilePage } from '../features/profile/ProfilePages';
 
 type AdminModule = typeof import('../features/admin');
@@ -22,6 +23,9 @@ const AdminLayout = admin('AdminLayout');
 const AdminDashboardPage = admin('AdminDashboardPage');
 const AdminBookingsPage = admin('AdminBookingsPage');
 const AdminBlocksPage = admin('AdminBlocksPage');
+const AdminClassesPage = admin('AdminClassesPage');
+const AdminNewClassPage = admin('AdminNewClassPage');
+const AdminClassDetailPage = admin('AdminClassDetailPage');
 const AdminUsersPage = admin('AdminUsersPage');
 const AdminUserDetailPage = admin('AdminUserDetailPage');
 const AdminSettingsPage = admin('AdminSettingsPage');
@@ -55,6 +59,7 @@ export const router = createBrowserRouter([
               { path: '/', element: <HomePage /> },
               { path: '/facilities', element: <FacilitiesPage /> },
               { path: '/facilities/:code', element: <FacilityBookingPage /> },
+              { path: '/classes', element: <ClassesPage /> },
               { path: '/bookings', element: <MyBookingsPage /> },
               { path: '/bookings/:id', element: <BookingDetailPage /> },
               { path: '/bookings/:id/confirmed', element: <BookingConfirmedPage /> },
@@ -73,6 +78,9 @@ export const router = createBrowserRouter([
                   { path: '/admin', element: wait(<AdminDashboardPage />) },
                   { path: '/admin/bookings', element: wait(<AdminBookingsPage />) },
                   { path: '/admin/blocks', element: wait(<AdminBlocksPage />) },
+                  { path: '/admin/classes', element: wait(<AdminClassesPage />) },
+                  { path: '/admin/classes/new', element: wait(<AdminNewClassPage />) },
+                  { path: '/admin/classes/:id', element: wait(<AdminClassDetailPage />) },
                   { path: '/admin/users', element: wait(<AdminUsersPage />) },
                   { path: '/admin/users/:id', element: wait(<AdminUserDetailPage />) },
                   { path: '/admin/settings', element: wait(<AdminSettingsPage />) },

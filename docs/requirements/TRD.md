@@ -5,8 +5,8 @@
 | Document | Technical Requirement Document |
 | Product | DCU Active |
 | Phase | Phase 4 — Integration, testing and hardening (as-built baseline) |
-| Version | 1.0 (as built; staging release of 2026-10-14) |
-| Date | 2026-10-14 |
+| Version | 1.1 (as built; adds Classes, CR-03) |
+| Date | 2026-10-22 |
 | Status | BASELINE. Describes the system as built and deployed to staging. Open technical items are listed in Section 0.7. |
 
 **Change log**
@@ -15,6 +15,7 @@
 |---|---|---|
 | 0.1 | 2026-10-13 | First draft. |
 | 0.2 | 2026-10-13 | PO decisions applied. (1) Email domain allow-list: new table `allowed_email_domains`, Auth hook, TR-AUTH-11/12, admin RPCs. (2) Admin settings screen in V1: `/admin/settings`, `admin_update_setting` with UI, new setting `user_cancel_cutoff_minutes`. (3) User cancellation cutoff 30 min before start. (4) Football Field 30/60/90 min (reference data). (5) Daily-limit backstop changed from a partial unique index to a transactional check, because the limit is now configurable. (6) TEST-36…54 mandatory. |
+| 1.1 | 2026-10-22 | **CR-03 Classes**: Section 0.8 (migrations 0014–0015, tables, RPCs, concurrency, tests). |
 | 1.0 | 2026-10-14 | **As-built baseline** after Phases 1–4. Adds Section 0: pinned stack, environments and hosting as deployed, database objects, deviations DV-01…14 and UAT fixes, test status, and open technical items. TR-DEP-05 updated: staging is hosted on Cloudflare static assets. All PROPOSED items were accepted at the Phase 0 approval and implemented unless Section 0.5 says otherwise. |
 | Related | `BRD.md` (business requirement IDs: BO-, FR-, BR-, NFR-), `REQUIREMENTS-TRACEABILITY-MATRIX.md`, `OPEN-DECISIONS.md` |
 
@@ -124,6 +125,22 @@ The build writes `dist/_headers` with the CSP, HSTS, other security headers, and
 | Real-device tests (TEST-28/29/31) and performance over a mobile network against staging | Phase 4 completion |
 | DV-01 network-level rate limiting; DV-08 session revocation | Revisit if abuse is observed |
 | Independent security review / penetration test | Go-live gate |
+
+### 0.8 CR-03 Classes (2026-10-22)
+
+| Area | As built |
+|---|---|
+| Migrations | `20261022000014_class_block_category.sql` (new block category `CLASS`, in its own migration because a new enum value cannot be used in the same transaction) and `20261022000015_classes.sql` |
+| Tables | `app.classes` (title, description, instructor, `facility_id` **or** `location_text`, capacity, is_active), `app.class_sessions` (date, start/end, capacity, status SCHEDULED/CANCELLED, `block_id`), `app.class_enrolments` (status reuses `booking_status`; one active place per user and session via a partial unique index; idempotency key). RLS: sessions/classes readable by active users, enrolments only by their owner or admins. |
+| Facility integration | Each session of a facility class creates a `facility_blocks` row (category `CLASS`), so availability, booking refusal and conflict handling reuse the existing block logic. Availability shows "Class: <title>". `admin_remove_block` refuses class blocks (`CLASS_BLOCK_MANAGED`); cancelling the session releases them. Two facility classes may not overlap (`CLASS_FACILITY_CONFLICT`). |
+| Concurrency | Lock order profile → session row (`FOR UPDATE`) before the capacity count, so simultaneous joins cannot exceed capacity. Facility sessions take the same resource locks as bookings and blocks. |
+| User RPCs | `list_class_sessions`, `get_class_session`, `enrol_class_session`, `list_my_class_enrolments`, `cancel_my_enrolment`, `check_in_class` |
+| Admin RPCs | `admin_preview_class_schedule`, `admin_create_class`, `admin_add_class_sessions`, `admin_update_class`, `admin_cancel_class_session`, `admin_cancel_class`, `admin_list_classes`, `admin_get_class`, `admin_list_session_participants`, `admin_class_metrics` |
+| Status job | `private.process_booking_statuses()` (cron `booking-status`, every minute) also runs `private.apply_class_transitions()` (no-show, completion). Deactivation trigger on `app.profiles` cancels future class places. |
+| Setting | `max_active_class_enrolments` (default 2, range 1–10), editable on the admin Settings screen |
+| Error codes | `CLASS_NOT_FOUND`, `CLASS_SESSION_NOT_FOUND`, `CLASS_SESSION_CANCELLED`, `CLASS_SESSION_STARTED`, `CLASS_ALREADY_ENROLLED`, `CLASS_FULL`, `CLASS_LIMIT_REACHED`, `CLASS_TIME_CONFLICT`, `CLASS_ENROLMENT_NOT_FOUND`, `CLASS_FACILITY_CONFLICT`, `CLASS_CAPACITY_BELOW_ENROLLED`, `CLASS_SESSION_NOT_CANCELLABLE`, `CLASS_BLOCK_MANAGED` |
+| Frontend | User: `/classes` (Schedule, My classes), Home "Your next class" and class check-in banner, bottom navigation with 5 items. Admin: `/admin/classes` (list), `/admin/classes/new`, `/admin/classes/:id` (sessions, participants, edit, cancel, add sessions), dashboard section "Classes". |
+| Tests | pgTAP `006_classes.test.sql` (TEST-55…64, 45 assertions); concurrency: 30 users join a 5-place session simultaneously × 20 → exactly 5; E2E `classes.spec.ts`; unit tests for the schedule helpers |
 
 ---
 

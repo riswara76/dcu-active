@@ -5,8 +5,8 @@
 | Document | Business Requirement Document |
 | Product | DCU Active — Sports & Recreational Facility Booking |
 | Phase | Phase 4 — Integration, testing and hardening (as-built baseline) |
-| Version | 1.0 (as built; staging release of 2026-10-14) |
-| Date | 2026-10-14 |
+| Version | 1.1 (as built; adds Classes, CR-03) |
+| Date | 2026-10-22 |
 | Status | BASELINE. Describes the application as built and deployed to staging. Remaining decisions are listed in Section 0.4. |
 | Companion documents | `TRD.md`, `REQUIREMENTS-TRACEABILITY-MATRIX.md`, `OPEN-DECISIONS.md`, `../user-manual/USER-MANUAL.md`, `../testing/TEST-RESULTS.md` |
 
@@ -16,6 +16,7 @@
 |---|---|---|
 | 0.1 | 2026-10-13 | First draft. |
 | 0.2 | 2026-10-13 | The Product Owner resolved all decisions needed before Phase 1 (see `OPEN-DECISIONS.md`, Decision Log). Three of them **change the original baseline**: (1) users may cancel only up to **30 minutes before** the start (BR-26); (2) the **Football Field** allows **30/60/90 minutes** (was 30); (3) registration is **restricted to approved company email domains** — `danamon.co.id`, `adira.co.id`, `homecredit.co.id` — which administrators can manage (FR-AUTH-12, FR-ADM-12); the baseline allowed any domain. In addition, an **admin settings screen is in V1 scope** (FR-ADM-13); the baseline deferred it. All other proposed defaults were accepted and are now APPROVED. |
+| 1.1 | 2026-10-22 | **CR-03 Classes** approved and built: new Section 8.9 (FR-CLS-01…09), Section 0.6, roles updated, FE-16/17 added. |
 | 1.0 | 2026-10-14 | **As-built baseline** after Phases 1–4. Adds Section 0 (delivery status, differences from v0.2, remaining decisions, and change requests under discussion). Updates FR-AVL-02 (pooled slot wording) and FR-BKG-01 (the duration choice stays on screen, UAT-01). Adds FR-AVL-06 (the grid highlights the whole selected block, UAT-02), FE-14 and FE-15. All PROPOSED items were accepted at the Phase 0 approval and implemented unless Section 0.3 says otherwise. |
 
 ## Requirement status labels
@@ -95,6 +96,12 @@ This section summarises the application **as built** on 2026-10-14. The rest of 
 |---|---|---|---|
 | CR-01 | Register with a **mobile phone number** (OTP) instead of a company email | A phone number does not prove employment, which the email-domain rule currently guarantees (FR-AUTH-12). It also needs an SMS/WhatsApp provider (cost per OTP) and a UU PDP review. Recommended: keep company-email registration and optionally add the phone number to the profile for OTP login or notifications later (FE-14). | Awaiting PO decision |
 | CR-02 | Allow booking **only when the user is at the DCU location** (geo-tag) | Device location can be spoofed, is inaccurate indoors and on laptops, and would remove advance booking (BR-07). Recommended alternative: keep booking from anywhere and require **location- or QR-verified check-in** at the facility (FE-01, FE-15). | Awaiting PO decision |
+
+### 0.6 Change request approved after v1.0
+
+| ID | Change | Status |
+|---|---|---|
+| CR-03 | **Classes** such as Yoga: admins create classes (one-off or weekly) at an existing facility or in a separate room; users join with limited places; admins monitor attendance (Section 8.9). | Built and tested locally on 2026-10-22; to be deployed to staging for UAT. |
 
 ---
 
@@ -368,6 +375,24 @@ Each requirement lists: ID, description, rationale, priority, acceptance criteri
 | FR-UX-07 | Accessibility target: WCAG 2.2 Level AA for all user and admin screens. | MUST | Zero serious or critical automated axe violations. Manual keyboard and screen-reader checks pass. | PROPOSED (level), APPROVED (intent) |
 
 ---
+
+### 8.9 Classes (CLS) — CR-03, APPROVED (PO, 2026-10-22)
+
+Administrators run classes (for example Yoga). Users join a class session instead of booking a facility slot.
+
+| ID | Requirement | Priority | Acceptance criteria | Role | Status |
+|---|---|---|---|---|---|
+| FR-CLS-01 | Create a class with name, optional instructor and description, capacity per session (1–200), and a location: **an existing facility** (its slots close during each session) or **a separate room** described in free text. | MUST | A facility class closes the facility for users ("Unavailable – Class: <name>"). A room class does not affect facility booking. | ADMIN | APPROVED |
+| FR-CLS-02 | Schedule: one session, or weekly on chosen weekdays until an end date (max 26 weeks / 60 sessions per action). Sessions are 30–240 minutes, 30-minute aligned, within operating hours, and start in the future. More sessions can be added later. | MUST | Tue/Thu for two weeks creates 4 sessions. Invalid times are refused. | ADMIN | APPROVED |
+| FR-CLS-03 | Before creating facility sessions, the admin reviews the bookings that overlap. They are cancelled only after explicit confirmation (same rule as blocks, FR-ADM-06). Two classes cannot use the same facility at the same time. | MUST | Without confirmation → refused; with confirmation → bookings ADMIN_CANCELLED and owners notified. | ADMIN | APPROVED |
+| FR-CLS-04 | Users see the sessions of the next 14 days with time, location, instructor, description and free places, and join with one confirmation. Places are first come, first served. Other participants are never shown. | MUST | Places left decrease when a user joins. A full session cannot be joined. | USER | APPROVED |
+| FR-CLS-05 | Class limit separate from facility bookings: at most **2 upcoming classes** per user (setting `max_active_class_enrolments`, 1–10). One place per person per session; two classes at the same time are refused. | MUST | The third class is refused with a clear message. Facility booking quota is unchanged. | USER | APPROVED |
+| FR-CLS-06 | Leaving a class up to 30 minutes before the start, check-in from 15 minutes before to 15 minutes after the start, and automatic no-show, using the same settings as bookings. | MUST | Same results as TEST-15/17/18 for class places. | USER | APPROVED |
+| FR-CLS-07 | Admin monitoring: per class, every session with places taken, checked in and no-shows; participant list per session; dashboard section "Classes" (sessions, places taken, attended, no-show, fill per class). | MUST | Numbers match the database. | ADMIN | APPROVED |
+| FR-CLS-08 | Admin changes: edit name/instructor/description/room/capacity (capacity applies to upcoming sessions and cannot drop below places taken); cancel one session or end the whole class with a mandatory reason. Participants are notified; a facility block is released. Every change is audited. | MUST | Cancelled session → participants notified, facility bookable again. | ADMIN | APPROVED |
+| FR-CLS-09 | Deactivating a user cancels their future class places (same as bookings, BR-28). | MUST | Places become free again. | ADMIN | APPROVED |
+
+Waiting lists, recurring-class enrolment ("join all sessions") and instructor accounts are not in scope (FE-16, FE-17).
 
 ## 9. Booking Business Rules
 
@@ -651,3 +676,5 @@ Payment · GPS validation · QR check-in · Chat · Social networking · Tournam
 | FE-13 | Admin booking on behalf of users | Front-desk use |
 | FE-14 | Mobile number on the profile, with OTP login or WhatsApp notifications (see CR-01) | Convenience. Requires an SMS/WhatsApp provider and a UU PDP review. |
 | FE-15 | Location- or QR-verified check-in at the facility (see CR-02) | Confirms presence without blocking advance booking |
+| FE-16 | Waiting list for full class sessions, with automatic offer when a place frees up | Fuller classes |
+| FE-17 | Join all sessions of a recurring class at once; instructor accounts that can see their participant lists | Convenience for regular participants and instructors |

@@ -118,3 +118,13 @@ E2E scenarios covered: TEST-01, 02 (incl. K-01 fix), 03, 05, 08, 09, 17, 18, 22,
 |---|---|---|---|---|---|
 | UAT-01 | 2026-10-14 | PO (Android, staging) | Football Field looked bookable for 30 minutes only. The server offered 30/60/90 (FR-BKG-01, OD-19), but on phones the Duration chips sat below the long slot grid, out of view, while the sticky bar already showed "30 min". | Duration chips moved into the sticky action bar (also sticky on desktop), so they are on screen as soon as a time is picked. TEST-05 now asserts the chips are in the viewport. E2E 41/41 pass. Deployed to staging. | Fixed; PO to re-test |
 | UAT-02 | 2026-10-14 | PO (Android, staging) | After choosing 13:30 and 90 minutes, only the 13:30 box was highlighted; 14:00 and 14:30 were not. | The slot grid now marks the whole block: the start slot reads "Selected" and the later slots "Included", all in the selected colour; it updates when the duration changes. Unit test + TEST-05 assertion added. E2E 41/41 pass. Deployed to staging. | Fixed; PO to re-test |
+
+## CR-03 Classes (2026-10-22, local)
+
+| Suite | Result |
+|---|---|
+| pgTAP (6 files, incl. `006_classes.test.sql`, TEST-55…64) | **242 / 242** |
+| Integration + concurrency (incl. 30 users joining a 5-place session simultaneously × 20 → exactly 5) | **18 / 18** |
+| Unit / component (Vitest) | **42 / 42** |
+| E2E (Playwright, all projects; new `classes.spec.ts` 8/8) | 48 / 49 in the full run; the one failure (TEST-25, deactivation shown in an open session) passed 3/3 when the admin suite was rerun — timing flake under load, monitored |
+| Typecheck, ESLint, `db lint` | Clean (one pre-existing informational lint note) |

@@ -72,6 +72,9 @@ export async function seriousA11yViolations(page: Page): Promise<string[]> {
 
 export async function resetData() {
   await db.query('delete from app.notifications');
+  await db.query('delete from app.class_enrolments');
+  await db.query('delete from app.class_sessions');
+  await db.query('delete from app.classes');
   await db.query('delete from app.bookings');
   await db.query('delete from app.facility_blocks');
   // Restore default settings (tests may change them through the admin UI).
@@ -79,7 +82,7 @@ export async function resetData() {
     update app.app_settings s set value = d.v::jsonb
     from (values ('booking_horizon_days', '7'), ('max_active_bookings', '2'), ('max_bookings_per_facility_per_day', '1'),
                  ('checkin_open_before_minutes', '15'), ('checkin_close_after_minutes', '15'),
-                 ('user_cancel_cutoff_minutes', '30')) as d(k, v)
+                 ('user_cancel_cutoff_minutes', '30'), ('max_active_class_enrolments', '2')) as d(k, v)
     where s.key = d.k and s.value <> d.v::jsonb`);
   await db.query(`delete from app.allowed_email_domains where domain like 'e2e-%'`);
 }

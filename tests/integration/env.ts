@@ -82,6 +82,9 @@ export async function wibDate(offsetDays: number): Promise<string> {
 /** Removes all bookings, blocks and notifications (local test database only). */
 export async function resetBookings(): Promise<void> {
   await db.query('delete from app.notifications');
+  await db.query('delete from app.class_enrolments');
+  await db.query('delete from app.class_sessions');
+  await db.query('delete from app.classes');
   await db.query('delete from app.bookings');
   await db.query('delete from app.facility_blocks');
 }

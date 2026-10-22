@@ -3,6 +3,7 @@ import { ApiError, KNOWN_CODES, newReference } from './errors';
 import type {
   AdminBooking, AdminBookingDetail, AdminUserDetail, AdminUserItem, AppConfig, AuditItem, Availability, BlockItem,
   BlockPreview, BookingView, DashboardMetrics, DomainItem, Facility, NotificationPage, Page, Profile, SettingItem,
+  AdminClassDetail, AdminClassItem, ClassEnrolment, ClassMetrics, ClassParticipant, ClassPreview, ClassSchedule, ClassSession,
 } from './types';
 
 /** Calls an api.* RPC and converts failures into ApiError with a stable business code. */
@@ -52,6 +53,12 @@ export const api = {
   notifications: (cursor?: string | null) =>
     rpc<NotificationPage>('list_my_notifications', { p_limit: 20, p_cursor: cursor ?? null }),
   markNotificationsRead: (ids?: string[]) => rpc<{ updated: number }>('mark_notifications_read', { p_ids: ids ?? null }),
+  classSessions: (from: string | null, days = 14) => rpc<ClassSession[]>('list_class_sessions', { p_date_from: from, p_days: days }),
+  enrolClass: (sessionId: string, key: string) =>
+    rpc<ClassEnrolment>('enrol_class_session', { p_session_id: sessionId, p_idempotency_key: key }),
+  myClasses: (scope: 'UPCOMING' | 'HISTORY') => rpc<ClassEnrolment[]>('list_my_class_enrolments', { p_scope: scope }),
+  cancelMyEnrolment: (id: string) => rpc<ClassEnrolment>('cancel_my_enrolment', { p_enrolment_id: id }),
+  checkInClass: (id: string) => rpc<ClassEnrolment>('check_in_class', { p_enrolment_id: id }),
 
   // admin
   dashboard: (from: string, to: string) => rpc<DashboardMetrics>('admin_dashboard_metrics', { p_date_from: from, p_date_to: to }),
@@ -89,6 +96,34 @@ export const api = {
   renameDomain: (id: string, domain: string, reason: string) =>
     rpc<unknown>('admin_rename_email_domain', { p_domain_id: id, p_new_domain: domain, p_reason: reason }),
   removeDomain: (id: string, reason: string) => rpc<unknown>('admin_remove_email_domain', { p_domain_id: id, p_reason: reason }),
+  classMetrics: (from: string, to: string) => rpc<ClassMetrics>('admin_class_metrics', { p_date_from: from, p_date_to: to }),
+  adminClasses: (includeInactive: boolean) => rpc<AdminClassItem[]>('admin_list_classes', { p_include_inactive: includeInactive }),
+  adminClass: (id: string) => rpc<AdminClassDetail>('admin_get_class', { p_class_id: id }),
+  previewClassSchedule: (facility: string | null, schedule: ClassSchedule) =>
+    rpc<ClassPreview>('admin_preview_class_schedule', { p_facility_code: facility, p_schedule: schedule }),
+  createClass: (c: {
+    title: string; description: string; instructor: string; facility: string | null; location: string | null;
+    capacity: number; schedule: ClassSchedule; expected: string[];
+  }) =>
+    rpc<{ class_id: string; session_ids: string[]; cancelled_booking_ids: string[] }>('admin_create_class', {
+      p_title: c.title, p_description: c.description, p_instructor: c.instructor, p_facility_code: c.facility,
+      p_location_text: c.location, p_capacity: c.capacity, p_schedule: c.schedule,
+      p_confirm_cancel_conflicts: true, p_expected_conflict_ids: c.expected,
+    }),
+  addClassSessions: (id: string, schedule: ClassSchedule, expected: string[]) =>
+    rpc<{ session_ids: string[]; cancelled_booking_ids: string[] }>('admin_add_class_sessions', {
+      p_class_id: id, p_schedule: schedule, p_confirm_cancel_conflicts: true, p_expected_conflict_ids: expected,
+    }),
+  updateClass: (id: string, c: { title: string; description: string; instructor: string; location: string | null; capacity: number }) =>
+    rpc<unknown>('admin_update_class', {
+      p_class_id: id, p_title: c.title, p_description: c.description, p_instructor: c.instructor,
+      p_location_text: c.location, p_capacity: c.capacity,
+    }),
+  cancelClassSession: (id: string, reason: string) =>
+    rpc<{ cancelled_enrolments: number }>('admin_cancel_class_session', { p_session_id: id, p_reason: reason }),
+  cancelClass: (id: string, reason: string) =>
+    rpc<{ cancelled_sessions: number; cancelled_enrolments: number }>('admin_cancel_class', { p_class_id: id, p_reason: reason }),
+  sessionParticipants: (id: string) => rpc<ClassParticipant[]>('admin_list_session_participants', { p_session_id: id }),
   auditLogs: (filters: Record<string, unknown>, cursor?: string | null) =>
     rpc<Page<AuditItem>>('admin_list_audit_logs', { p_filters: filters, p_limit: 50, p_cursor: cursor ?? null }),
 };

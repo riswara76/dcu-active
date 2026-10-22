@@ -19,6 +19,7 @@ const LABELS: Record<string, { label: string; unit: string }> = {
   booking_horizon_days: { label: 'Booking horizon', unit: 'days ahead' },
   max_active_bookings: { label: 'Max upcoming bookings per user', unit: '' },
   max_bookings_per_facility_per_day: { label: 'Max bookings per facility per day', unit: '' },
+  max_active_class_enrolments: { label: 'Max upcoming class enrolments per user', unit: '' },
 };
 
 function BookingSettings() {
