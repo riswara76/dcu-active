@@ -221,7 +221,7 @@ export function AdminNewClassPage() {
       <Link to="/admin/classes" className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-primary">
         <ArrowLeft className="size-4" aria-hidden="true" /> Classes
       </Link>
-      <PageHeader title="New class" />
+      <PageHeader title="New class" subtitle="Fill in the class, choose where it takes place and when, then check and create." />
       <Card>
         <form onSubmit={submit} className="space-y-5" noValidate>
           <div className="grid gap-3 md:grid-cols-3">
@@ -232,7 +232,9 @@ export function AdminNewClassPage() {
             <TextField label="Capacity (places per session)" type="number" inputMode="numeric" min={1} max={200} value={form.capacity}
               onChange={(e) => setForm({ ...form, capacity: e.target.value })} />
             <div className="md:col-span-3">
-              <TextAreaField label="Description (optional, shown to users)" value={form.description} maxLength={1000}
+              <TextAreaField label="Details for participants (optional)" maxLength={1000}
+                placeholder="e.g. exact location and how to get there, what to bring, level, dress code"
+                hint="Shown to users on the class schedule." value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })} />
             </div>
           </div>
@@ -333,7 +335,7 @@ function EditClassDialog({ c, open, onOpenChange }: { c: AdminClassDetail; open:
           <TextField label="Room / location" value={form.room} maxLength={120} onChange={(e) => setForm({ ...form, room: e.target.value })} />
         )}
         <div className="md:col-span-2">
-          <TextAreaField label="Description" value={form.description} maxLength={1000} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          <TextAreaField label="Details for participants" value={form.description} maxLength={1000} onChange={(e) => setForm({ ...form, description: e.target.value })} />
         </div>
       </div>
       {save.isError && <p role="alert" className="mt-3 rounded-lg bg-danger-bg px-3 py-2 text-sm font-medium text-danger">{errorMessage(save.error)}</p>}

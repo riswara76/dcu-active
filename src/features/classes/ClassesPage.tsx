@@ -1,7 +1,9 @@
 import { useState, type ReactNode } from 'react';
+import { Link } from 'react-router';
+import { useAuth } from '../../auth/AuthProvider';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tabs } from 'radix-ui';
-import { CalendarPlus, Clock, History, MapPin, UserRound, Users } from 'lucide-react';
+import { CalendarPlus, Clock, History, MapPin, Plus, Settings2, UserRound, Users } from 'lucide-react';
 import { api } from '../../lib/api';
 import { errorMessage } from '../../lib/errors';
 import { formatDate } from '../../lib/time';
@@ -100,7 +102,7 @@ export function EnrolmentCard({ e, onLeave, onCheckIn, checkingIn }: {
   );
 }
 
-function SessionCard({ s, onJoin }: { s: ClassSession; onJoin: (s: ClassSession) => void }) {
+function SessionCard({ s, onJoin, isAdmin }: { s: ClassSession; onJoin: (s: ClassSession) => void; isAdmin: boolean }) {
   const online = useOnlineStatus();
   const mine = s.my_enrolment;
   return (
@@ -121,7 +123,7 @@ function SessionCard({ s, onJoin }: { s: ClassSession; onJoin: (s: ClassSession)
           {s.spots_left === 0 ? 'Full' : `${s.spots_left} of ${s.capacity} left`}
         </span>
       </div>
-      <div className="mt-3">
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
         {mine ? (
           <p className="text-sm font-semibold text-available">You&apos;re in this class · see My classes</p>
         ) : (
@@ -129,12 +131,17 @@ function SessionCard({ s, onJoin }: { s: ClassSession; onJoin: (s: ClassSession)
             {s.spots_left === 0 ? 'Class full' : 'Join class'}
           </Button>
         )}
+        {isAdmin && (
+          <Link to={`/admin/classes/${s.class.id}`} className="inline-flex min-h-9 items-center gap-1 text-sm font-semibold text-primary">
+            <Settings2 className="size-4" aria-hidden="true" /> Manage
+          </Link>
+        )}
       </div>
     </article>
   );
 }
 
-function Schedule() {
+function Schedule({ isAdmin }: { isAdmin: boolean }) {
   const queryClient = useQueryClient();
   const toast = useToast();
   const [toJoin, setToJoin] = useState<{ s: ClassSession; key: string } | null>(null);
@@ -152,7 +159,10 @@ function Schedule() {
 
   if (sessions.isPending) return <div className="space-y-3">{[0, 1].map((i) => <Skeleton key={i} className="h-28" />)}</div>;
   if (sessions.isError) return <ErrorState error={sessions.error} onRetry={() => void sessions.refetch()} />;
-  if (!sessions.data.length) return <EmptyState icon={<CalendarPlus className="size-8" />} title="No classes scheduled in the next two weeks." />;
+  if (!sessions.data.length) {
+    return <EmptyState icon={<CalendarPlus className="size-8" />} title="No classes scheduled in the next two weeks."
+      action={isAdmin ? <Link to="/admin/classes/new" className="font-semibold text-primary underline">Add a class</Link> : undefined} />;
+  }
 
   const days = [...new Set(sessions.data.map((s) => s.date_wib))];
   const j = toJoin?.s;
@@ -163,7 +173,7 @@ function Schedule() {
           <h2 id={`d-${d}`} className="mb-2 font-bold">{formatDate(d)}</h2>
           <div className="space-y-3">
             {sessions.data.filter((s) => s.date_wib === d).map((s) => (
-              <SessionCard key={s.id} s={s} onJoin={(x) => { join.reset(); setToJoin({ s: x, key: crypto.randomUUID() }); }} />
+              <SessionCard key={s.id} s={s} isAdmin={isAdmin} onJoin={(x) => { join.reset(); setToJoin({ s: x, key: crypto.randomUUID() }); }} />
             ))}
           </div>
         </section>
@@ -216,11 +226,18 @@ function MyClasses() {
 
 /** Classes run by DCU (e.g. Yoga): schedule with free places, joining, and the user's own places (CR-03). */
 export function ClassesPage() {
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === 'ADMIN';
   const upcoming = useMyUpcomingClasses();
   const checkInOpen = upcoming.data?.find((e) => e.can_check_in);
   return (
     <div>
-      <PageHeader title="Classes" subtitle="Join a class run by DCU. Places are first come, first served." />
+      <PageHeader title="Classes" subtitle="Join a class run by DCU. Places are first come, first served."
+        actions={isAdmin && (
+          <Link to="/admin/classes/new" className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-4 font-semibold text-white hover:bg-primary-hover">
+            <Plus className="size-5" aria-hidden="true" /> Add a class
+          </Link>
+        )} />
       {checkInOpen && (
         <div className="mb-4">
           <Banner tone="warning" title={`Check-in open: ${checkInOpen.class.title}`}>
@@ -237,7 +254,7 @@ export function ClassesPage() {
             </Tabs.Trigger>
           ))}
         </Tabs.List>
-        <Tabs.Content value="SCHEDULE"><Schedule /></Tabs.Content>
+        <Tabs.Content value="SCHEDULE"><Schedule isAdmin={isAdmin} /></Tabs.Content>
         <Tabs.Content value="MINE"><MyClasses /></Tabs.Content>
       </Tabs.Root>
     </div>
