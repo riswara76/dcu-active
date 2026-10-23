@@ -23,6 +23,7 @@ Steps marked **PO** must be done by the account owner: creating projects, passwo
 | GitHub | Pushed to `riswara76/dcu-active` (branch `main`) |
 | CR-03 Classes (2026-10-22) | Migrations 0014–0015 applied to staging; frontend redeployed. Checks: 15 class RPCs present, none executable by `anon`, setting `max_active_class_enrolments` present, status job healthy. |
 | UAT test accounts (2026-10-22) | Created with `scripts/create-test-accounts.sql` because Danamon email/SMTP (OD-03) is not available yet: `admin1`–`admin2@dcu-active.test` (ADMIN) and `user1`–`user5@dcu-active.test` (USER), already confirmed, no email sent. Password agreed with the PO (not stored in the repo). Test domain `dcu-active.test` added to the allow-list (audited). **After UAT:** deactivate these accounts and remove the domain. |
+| UAT usernames (2026-10-23) | Staging build sets `VITE_TEST_LOGIN_DOMAIN=dcu-active.test`, so testers sign in with **Admin1, Admin2, User1, User2** (expanded to `<name>@dcu-active.test`). user3–user5 deactivated. **Remove the variable before go-live** (production builds must not set it). |
 
 **Windows note:** PowerShell on this PC blocks `npx` scripts. Use `npx.cmd …` (no policy change needed).
 

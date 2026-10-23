@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { addDays, addMinutesToTime, bookableDates, formatDate, formatTimeWib, halfHourTimes, relativeDayLabel, wibDateOf, wibInstant } from './time';
 import { safeNext } from './safe-redirect';
 import { ApiError, authError, errorMessage } from './errors';
-import { emailDomain, isEmail, passwordMeetsPolicy } from '../features/auth/password';
+import { emailDomain, isEmail, loginAddress, passwordMeetsPolicy } from '../features/auth/password';
 
 describe('time (TEST-27: device timezone is America/New_York in this suite)', () => {
   it('runs with a non-Jakarta device timezone', () => {
@@ -82,5 +82,15 @@ describe('password and email helpers (FR-AUTH-07, FR-AUTH-12 UX)', () => {
     expect(emailDomain('Rina@Danamon.co.id')).toBe('danamon.co.id');
     expect(isEmail('rina@danamon.co.id')).toBe(true);
     expect(isEmail('rina@danamon')).toBe(false);
+  });
+});
+
+describe('loginAddress (staging test usernames)', () => {
+  it('expands a short username only when a test domain is configured', () => {
+    expect(loginAddress(' Admin1 ', 'dcu-active.test')).toBe('admin1@dcu-active.test');
+    expect(loginAddress('User2', 'dcu-active.test')).toBe('user2@dcu-active.test');
+    expect(loginAddress('Rina@Danamon.co.id', 'dcu-active.test')).toBe('rina@danamon.co.id');
+    expect(loginAddress('Admin1', null)).toBe('admin1');
+    expect(loginAddress('Admin1', undefined)).toBe('admin1');
   });
 });

@@ -1,6 +1,6 @@
 -- DCU Active — UAT test accounts for STAGING (PO request 2026-10-22, while Danamon email/SMTP is not available).
 --
--- Creates 2 ADMIN and 5 USER accounts on the reserved test domain "dcu-active.test" (RFC 2606: can never receive
+-- Creates 2 ADMIN and 2 USER accounts (sign in on staging with the short usernames Admin1, Admin2, User1, User2) on the reserved test domain "dcu-active.test" (RFC 2606: can never receive
 -- email). Accounts are created already confirmed, so no verification email is sent. The domain is added to the
 -- registration allow-list (audited) so admin rules stay consistent; remove it in Admin → Settings → Email domains
 -- after UAT, and deactivate the accounts.
@@ -28,13 +28,10 @@ begin
 
   for r in
     select * from (values
-      ('admin1@dcu-active.test', 'Admin Test 1', 'ADMIN'),
-      ('admin2@dcu-active.test', 'Admin Test 2', 'ADMIN'),
-      ('user1@dcu-active.test',  'User Test 1',  'USER'),
-      ('user2@dcu-active.test',  'User Test 2',  'USER'),
-      ('user3@dcu-active.test',  'User Test 3',  'USER'),
-      ('user4@dcu-active.test',  'User Test 4',  'USER'),
-      ('user5@dcu-active.test',  'User Test 5',  'USER')
+      ('admin1@dcu-active.test', 'Admin1', 'ADMIN'),
+      ('admin2@dcu-active.test', 'Admin2', 'ADMIN'),
+      ('user1@dcu-active.test',  'User1',  'USER'),
+      ('user2@dcu-active.test',  'User2',  'USER')
     ) as t (email, full_name, role)
   loop
     select id into v_id from auth.users where email = r.email;
@@ -57,6 +54,7 @@ begin
          set encrypted_password = extensions.crypt(v_password, extensions.gen_salt('bf')),
              email_confirmed_at = coalesce(email_confirmed_at, now()), updated_at = now()
        where id = v_id;
+      update app.profiles set full_name = r.full_name where id = v_id and full_name <> r.full_name;
       update app.profiles set is_active = true, deactivated_at = null, deactivated_by = null, deactivation_reason = null
        where id = v_id and not is_active;
       v_updated := v_updated + 1;

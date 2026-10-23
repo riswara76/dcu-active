@@ -15,6 +15,15 @@ export function isEmail(value: string): boolean {
   return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value.trim());
 }
 
+/**
+ * Sign-in address. On staging/UAT builds only (VITE_TEST_LOGIN_DOMAIN set), a short test username such as
+ * "Admin1" is expanded to "admin1@<test domain>". Without that setting (production) the input is used as typed.
+ */
+export function loginAddress(input: string, testDomain: string | null | undefined): string {
+  const value = input.trim().toLowerCase();
+  return testDomain && /^[a-z0-9._-]+$/.test(value) ? `${value}@${testDomain}` : value;
+}
+
 export function emailDomain(email: string): string {
   const at = email.lastIndexOf('@');
   return at < 0 ? '' : email.slice(at + 1).trim().toLowerCase();
