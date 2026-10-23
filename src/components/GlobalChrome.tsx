@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { RefreshCw, Share, WifiOff, X } from 'lucide-react';
 import { useOnlineStatus } from '../lib/online';
@@ -17,13 +17,28 @@ export function OfflineBanner() {
   );
 }
 
+// A new version found within this time after the app opens is applied straight away (the user has not started
+// anything yet); later updates show the prompt so an open form is never lost by an automatic reload.
+const AUTO_APPLY_WINDOW_MS = 15_000;
+const UPDATE_CHECK_MS = 60_000;
+
 /** S25 — "new version available" prompt. Deferred while a booking review is open (TR-PWA-05). */
 export function UpdatePrompt() {
+  const [openedAt] = useState(() => Date.now());
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
-  } = useRegisterSW({ immediate: true });
+  } = useRegisterSW({
+    immediate: true,
+    // Check for a new version while the app stays open (installed apps can stay open for days).
+    onRegisteredSW(_url, registration) {
+      if (registration) setInterval(() => void registration.update(), UPDATE_CHECK_MS);
+    },
+  });
   const reviewOpen = useReviewOpen();
+  useEffect(() => {
+    if (needRefresh && !reviewOpen && Date.now() - openedAt < AUTO_APPLY_WINDOW_MS) void updateServiceWorker(true);
+  }, [needRefresh, reviewOpen, openedAt, updateServiceWorker]);
   if (!needRefresh || reviewOpen) return null;
   return (
     <div role="status" className="fixed inset-x-4 bottom-20 z-50 mx-auto flex max-w-md items-center gap-3 rounded-xl border border-line bg-white p-4 shadow-lg md:bottom-6">
