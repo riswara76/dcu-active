@@ -16,6 +16,7 @@ manifest.appVersionCode = 1;
 manifest.appVersionName = '1.0.0-uat';
 manifest.fallbackType = 'customtabs';         // if Digital Asset Links fail, open in a Custom Tab (never a WebView)
 manifest.enableNotifications = false;
+manifest.minSdkVersion = 24;                  // Android 7.0+, required by androidbrowserhelper 2.7
 manifest.navigationColor = new Color('#FFFFFF');         // Android navigation bar matches the white app background
 manifest.navigationDividerColor = new Color('#D1D5DB');
 manifest.themeColorDark = new Color('#1F2937');
