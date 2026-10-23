@@ -1,0 +1,7 @@
+node_modules/
+# Signing material stays on the build PC only (never commit keys or passwords)
+signing/
+# Generated Android project and build outputs (re-create with `npm run generate`)
+project/
+*.apk
+*.aab

@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "id.dcu.active.uat",
+      "sha256_cert_fingerprints": [
+        "70:F7:5A:55:8B:5E:A8:B6:65:D5:B4:57:E5:F2:B8:6F:3C:0B:F3:BA:3E:C5:79:25:FD:49:B4:D9:02:E2:6E:B5"
+      ]
+    }
+  }
+]
