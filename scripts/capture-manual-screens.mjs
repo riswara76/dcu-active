@@ -161,7 +161,7 @@ await page.goto(`${BASE}/admin/classes/new`);
 await page.getByLabel('Class name').fill('Pilates');
 await page.getByLabel('Instructor (optional)').fill('Sari');
 await page.getByLabel('Room / location').fill('Studio, 2nd floor, DCU building');
-await page.getByLabel('First session date').fill(wib(3).iso);
+await page.getByLabel('First session date').selectOption(wib(3).iso);
 await page.getByLabel('Repeat every week').check();
 await page.getByRole('button', { name: 'Check schedule' }).click();
 await page.getByRole('button', { name: 'Create class' }).waitFor();

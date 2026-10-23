@@ -32,7 +32,7 @@ test('TEST-57 admin creates a class at a facility: conflicts confirmed, slots cl
   await page.getByLabel('Capacity (places per session)').fill('8');
   await page.getByLabel(/^Existing facility/).check();
   await page.getByLabel('Facility', { exact: true }).selectOption({ label: 'Tennis Court' });
-  await page.getByLabel('First session date').fill(date);
+  await page.getByLabel('First session date').selectOption(date);
   await page.getByLabel('Start time').selectOption('09:30');
   await page.getByLabel('Duration').selectOption('90');
   await page.getByRole('button', { name: 'Check schedule' }).click();
@@ -109,4 +109,41 @@ test('admin class pages have no serious accessibility violations', async ({ page
   await page.goto('/admin/classes/new');
   await expect(page.getByRole('heading', { name: 'New class' })).toBeVisible();
   expect(await seriousA11yViolations(page)).toEqual([]);
+});
+
+test('TEST-62 admin schedules a weekly class, then cancels a session that a user joined @smoke', async ({ page }) => {
+  const title = `Weekly Yoga ${randomUUID().slice(0, 4)}`;
+  const first = await wibDate(2);
+  await login(page, ADMIN);
+  await page.goto('/admin/classes/new');
+  await page.getByLabel('Class name').fill(title);
+  await page.getByLabel('Room / location').fill('Studio, 2nd floor');
+  await page.getByLabel('First session date').selectOption(first);
+  await page.getByLabel('Start time').selectOption('07:00');
+  await page.getByLabel('Repeat every week').check();
+  await page.getByLabel('For how many weeks').selectOption('3');
+  await page.getByRole('button', { name: 'Check schedule' }).click();
+  await expect(page.getByText('3 session(s).', { exact: false })).toBeVisible();
+  await page.getByRole('button', { name: 'Create class' }).click();
+  await expect(page.getByRole('heading', { name: title })).toBeVisible();
+  const { rows: sessions } = await db.query(
+    `select s.id from app.class_sessions s join app.classes c on c.id = s.class_id where c.title = $1 order by s.start_at`, [title]);
+  expect(sessions).toHaveLength(3);
+
+  // A user joins the first session (API), then the admin cancels that session with a reason.
+  const member = await newUser('weekly');
+  const client = await signIn(member);
+  const joined = await client.rpc('enrol_class_session', { p_session_id: sessions[0].id, p_idempotency_key: randomUUID() });
+  expect(joined.error).toBeNull();
+  await page.reload();
+  const row = page.getByRole('row').filter({ hasText: '1 / ' }).first();
+  await row.getByRole('button', { name: 'Cancel' }).click();
+  const dialog = page.getByRole('alertdialog').or(page.getByRole('dialog'));
+  await dialog.getByLabel(/Reason/).fill('Instructor unavailable (E2E)');
+  await dialog.getByRole('button', { name: 'Cancel session' }).click();
+  await expect(page.getByText('Session cancelled').first()).toBeVisible();
+  const { rows } = await db.query(
+    `select s.status::text as session, e.status::text as place from app.class_sessions s
+       join app.class_enrolments e on e.session_id = s.id where s.id = $1`, [sessions[0].id]);
+  expect(rows).toEqual([{ session: 'CANCELLED', place: 'ADMIN_CANCELLED' }]);
 });

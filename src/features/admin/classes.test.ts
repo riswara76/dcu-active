@@ -9,12 +9,12 @@ describe('class schedule helpers (CR-03)', () => {
   });
 
   it('sends a one-off session without repeat days', () => {
-    expect(toSchedule({ startDate: '2026-10-23', startTime: '18:00', duration: 60, repeat: false, weekdays: [5], untilDate: '2026-12-01' }))
+    expect(toSchedule({ startDate: '2026-10-23', startTime: '18:00', duration: 60, repeat: false, weekdays: [5], weeks: 4 }))
       .toEqual({ start_date: '2026-10-23', start_time: '18:00', duration_minutes: 60, repeat_weekdays: [], until_date: null });
   });
 
-  it('sends sorted weekdays and the end date for a weekly class', () => {
-    expect(toSchedule({ startDate: '2026-10-23', startTime: '07:00', duration: 90, repeat: true, weekdays: [5, 2], untilDate: '2026-12-18' }))
-      .toEqual({ start_date: '2026-10-23', start_time: '07:00', duration_minutes: 90, repeat_weekdays: [2, 5], until_date: '2026-12-18' });
+  it('sends sorted weekdays and the last day of the last week for a weekly class', () => {
+    expect(toSchedule({ startDate: '2026-10-23', startTime: '07:00', duration: 90, repeat: true, weekdays: [5, 2], weeks: 8 }))
+      .toEqual({ start_date: '2026-10-23', start_time: '07:00', duration_minutes: 90, repeat_weekdays: [2, 5], until_date: '2026-12-17' });
   });
 });

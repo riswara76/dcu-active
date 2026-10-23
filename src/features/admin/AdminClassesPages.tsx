@@ -20,14 +20,17 @@ const WEEKDAYS = [
 ];
 const DURATIONS = [30, 60, 90, 120, 150, 180, 210, 240];
 
-interface ScheduleForm { startDate: string; startTime: string; duration: number; repeat: boolean; weekdays: number[]; untilDate: string }
+interface ScheduleForm { startDate: string; startTime: string; duration: number; repeat: boolean; weekdays: number[]; weeks: number }
 
-const emptySchedule = (): ScheduleForm => ({ startDate: '', startTime: '18:00', duration: 60, repeat: false, weekdays: [], untilDate: '' });
+const emptySchedule = (): ScheduleForm => ({ startDate: '', startTime: '18:00', duration: 60, repeat: false, weekdays: [], weeks: 8 });
+const SCHEDULE_DAYS = 90; // first session can be chosen up to 90 days ahead
+const WEEK_OPTIONS = Array.from({ length: 26 }, (_, i) => i + 1);
 
 export function toSchedule(f: ScheduleForm): ClassSchedule {
   return {
     start_date: f.startDate, start_time: f.startTime, duration_minutes: f.duration,
-    repeat_weekdays: f.repeat ? [...f.weekdays].sort((a, b) => a - b) : [], until_date: f.repeat ? f.untilDate || null : null,
+    repeat_weekdays: f.repeat ? [...f.weekdays].sort((a, b) => a - b) : [],
+    until_date: f.repeat && f.startDate ? addDays(f.startDate, f.weeks * 7 - 1) : null,
   };
 }
 
@@ -41,11 +44,17 @@ function ScheduleFields({ value, onChange }: { value: ScheduleForm; onChange: (v
   const config = useAppConfig();
   const times = halfHourTimes(config.data?.operating_open, config.data?.operating_close);
   const set = (patch: Partial<ScheduleForm>) => onChange({ ...value, ...patch });
+  const today = config.data?.today_wib;
+  const days = today ? Array.from({ length: SCHEDULE_DAYS }, (_, i) => addDays(today, i)) : [];
+  const lastDate = value.startDate ? addDays(value.startDate, value.weeks * 7 - 1) : null;
   return (
     <fieldset className="grid gap-3 md:grid-cols-3">
       <legend className="mb-2 font-semibold">Schedule (WIB)</legend>
-      <TextField label="First session date" type="date" value={value.startDate} min={config.data?.today_wib}
-        onChange={(e) => set({ startDate: e.target.value, weekdays: value.weekdays.length || !e.target.value ? value.weekdays : [isoWeekday(e.target.value)] })} />
+      <SelectField label="First session date" value={value.startDate}
+        onChange={(e) => set({ startDate: e.target.value, weekdays: value.weekdays.length || !e.target.value ? value.weekdays : [isoWeekday(e.target.value)] })}>
+        <option value="">Choose a date…</option>
+        {days.map((d) => <option key={d} value={d}>{formatDate(d)}</option>)}
+      </SelectField>
       <SelectField label="Start time" value={value.startTime} onChange={(e) => set({ startTime: e.target.value })}>
         {times.map((t) => <option key={t} value={t}>{t}</option>)}
       </SelectField>
@@ -54,7 +63,7 @@ function ScheduleFields({ value, onChange }: { value: ScheduleForm; onChange: (v
       </SelectField>
       <label className="flex items-center gap-2 md:col-span-3">
         <input type="checkbox" className="size-5 accent-[var(--color-primary)]" checked={value.repeat}
-          onChange={(e) => set({ repeat: e.target.checked, untilDate: value.untilDate || (value.startDate ? addDays(value.startDate, 7 * 8 - 1) : '') })} />
+          onChange={(e) => set({ repeat: e.target.checked })} />
         <span className="font-semibold">Repeat every week</span>
       </label>
       {value.repeat && (
@@ -74,8 +83,10 @@ function ScheduleFields({ value, onChange }: { value: ScheduleForm; onChange: (v
               })}
             </div>
           </div>
-          <TextField label="Repeat until" type="date" value={value.untilDate} min={value.startDate}
-            hint="Up to 26 weeks / 60 sessions at once." onChange={(e) => set({ untilDate: e.target.value })} />
+          <SelectField label="For how many weeks" value={value.weeks} onChange={(e) => set({ weeks: Number(e.target.value) })}
+            hint={lastDate ? `Until ${formatDate(lastDate)}. Up to 60 sessions at once.` : 'Up to 26 weeks / 60 sessions at once.'}>
+            {WEEK_OPTIONS.map((w) => <option key={w} value={w}>{w} {w === 1 ? 'week' : 'weeks'}</option>)}
+          </SelectField>
         </>
       )}
     </fieldset>
@@ -120,7 +131,7 @@ function PreviewPanel({ preview, understood, onUnderstood }: { preview: ClassPre
 
 function scheduleError(f: ScheduleForm): string | null {
   if (!f.startDate) return 'Choose the date of the first session.';
-  if (f.repeat && (!f.weekdays.length || !f.untilDate)) return 'Choose the days of the week and the "repeat until" date.';
+  if (f.repeat && !f.weekdays.length) return 'Choose at least one day of the week.';
   return null;
 }
 
